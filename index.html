@@ -114,6 +114,12 @@
         .preview-item img { width: 100%; height: 100%; object-fit: cover; }
         .remove-image { position: absolute; top: 2px; right: 2px; background: #e74c3c; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; }
         
+        /* Camera/Upload buttons */
+        .image-source-buttons { display: flex; gap: 10px; margin: 10px 0; }
+        .image-source-buttons button { flex: 1; margin: 0; font-size: 0.8rem; }
+        .btn-camera { background: #3498db; }
+        .btn-gallery { background: #2ecc71; }
+        
         .chat-message { background: #f1f5f9; padding: 8px 12px; border-radius: 20px; margin: 6px 0; }
         .chat-message.sent { background: #e67e22; color: white; text-align: right; }
         .order-notification { background: #d1fae5; padding: 10px; border-radius: 16px; margin: 8px 0; border-left: 4px solid #10b981; }
@@ -124,6 +130,7 @@
         footer { text-align: center; font-size: 0.7rem; color: #94a3b8; padding: 1rem; }
         .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1a3a32; color: white; padding: 8px 20px; border-radius: 40px; z-index: 1100; font-size: 0.8rem; }
         .airtel-highlight { background: #E60000; color: white; padding: 12px; border-radius: 60px; text-align: center; font-weight: bold; margin: 10px 0; }
+        .permission-request { background: #fef3c7; padding: 10px; border-radius: 16px; margin: 10px 0; text-align: center; }
     </style>
 </head>
 <body>
@@ -172,8 +179,47 @@
 <!-- Registration Modal -->
 <div id="registerModal" class="modal"><div class="modal-card"><span id="closeReg" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-handshake"></i> Become a seller</h3><div class="airtel-highlight"><i class="fas fa-mobile-alt"></i> Pay 5,000 UGX via Airtel Money<br><strong style="font-size: 1.3rem;">0709298041</strong></div><button id="payAirtelBtn" class="btn-airtel"><i class="fas fa-circle"></i> Pay with Airtel Money (5,000 UGX)</button><div style="text-align:center; margin:10px;">— After payment, complete form —</div><input type="text" id="regBusiness" placeholder="Business name"><input type="tel" id="regPhoneNum" placeholder="Your phone number"><input type="text" id="regTxnRef" placeholder="Airtel transaction reference"><button id="submitRegReq">Request approval</button><div id="regMsg"></div></div></div>
 
-<!-- Vendor Dashboard -->
-<div id="vendorModal" class="modal"><div class="modal-card"><span id="closeVendor" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-chart-line"></i> Vendor panel</h3><div id="vendorLoginDiv"><input type="tel" id="vendorLoginPhone" placeholder="Phone number"><button id="doVendorLogin">Login</button></div><div id="vendorDashboardPanel" style="display:none;"><h4>Add product</h4><input type="text" id="prodName" placeholder="Product name"><input type="number" id="prodPrice" placeholder="Price (UGX)"><select id="prodCategory"><option>Fresh Foods</option><option>Electronics</option><option>Fashion</option><option>Home & Living</option></select><textarea id="prodDesc" rows="2" placeholder="Description"></textarea><div class="image-upload-area" id="imageUploadArea"><i class="fas fa-camera" style="font-size:1.5rem; color:#e67e22;"></i><p>Tap to select product image</p><input type="file" id="productImageInput" accept="image/*" style="display:none;"></div><div id="imagePreviewContainer" class="image-preview-grid"></div><button id="publishProductBtn">Publish Product</button><hr><h4>Your products</h4><div id="vendorProductsList"></div></div></div></div>
+<!-- Vendor Dashboard with Multi-Image Upload (up to 4 images) -->
+<div id="vendorModal" class="modal">
+    <div class="modal-card">
+        <span id="closeVendor" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span>
+        <h3><i class="fas fa-chart-line"></i> Vendor panel</h3>
+        <div id="vendorLoginDiv">
+            <input type="tel" id="vendorLoginPhone" placeholder="Phone number">
+            <button id="doVendorLogin">Login</button>
+        </div>
+        <div id="vendorDashboardPanel" style="display:none;">
+            <h4>Add Product</h4>
+            <input type="text" id="prodName" placeholder="Product name">
+            <input type="number" id="prodPrice" placeholder="Price (UGX)">
+            <select id="prodCategory">
+                <option>Fresh Foods</option>
+                <option>Electronics</option>
+                <option>Fashion</option>
+                <option>Home & Living</option>
+            </select>
+            <textarea id="prodDesc" rows="2" placeholder="Description"></textarea>
+            
+            <div class="image-source-buttons">
+                <button id="cameraBtn" class="btn-camera"><i class="fas fa-camera"></i> Take Photo</button>
+                <button id="galleryBtn" class="btn-gallery"><i class="fas fa-images"></i> Choose from Gallery</button>
+            </div>
+            <div class="image-upload-area" id="imageUploadArea">
+                <i class="fas fa-cloud-upload-alt" style="font-size:1.5rem; color:#e67e22;"></i>
+                <p>Tap to select multiple images (up to 4)</p>
+                <small style="color: #64748b;">You can select up to 4 product photos</small>
+                <input type="file" id="productImagesInput" accept="image/*" multiple style="display:none;">
+            </div>
+            <div id="imagePreviewContainer" class="image-preview-grid"></div>
+            <div id="permissionMessage" class="permission-request" style="display:none;"></div>
+            
+            <button id="publishProductBtn">Publish Product</button>
+            <hr>
+            <h4>Your Products</h4>
+            <div id="vendorProductsList"></div>
+        </div>
+    </div>
+</div>
 
 <!-- Profile Modal -->
 <div id="profileModal" class="modal"><div class="modal-card"><span id="closeProfile" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-user-circle"></i> My Profile</h3><div id="profileLoginArea"><input type="tel" id="profilePhoneInput" placeholder="Enter your phone number"><button id="profileLoginBtn">Login to Profile</button></div><div id="profileContent" style="display:none;"><div id="profileInfo"></div><div style="margin-top:1rem;"><h4><i class="fas fa-bell"></i> Notifications <span id="notificationCount" style="background:#e74c3c; color:white; padding:2px 8px; border-radius:20px; font-size:0.7rem;">0</span></h4><div id="notificationsList"></div></div><div style="margin-top:1rem;"><h4><i class="fas fa-comments"></i> Messages</h4><div id="conversationsList"></div><div id="chatArea" style="display:none;"><div id="chatWith"></div><div id="chatMessages"></div><div class="message-input-area"><input type="text" id="chatMessageInput" placeholder="Type a message..."><button id="sendMessageBtn">Send</button></div></div></div></div></div></div>
@@ -194,7 +240,7 @@
     const AIRTEL_NUMBER = "0709298041";
     let currentUserId = null;
     let currentChatWith = null;
-    let currentProductImage = null;
+    let currentImagesArray = []; // Array to store up to 4 images
     
     function saveAll() {
         localStorage.setItem('CM_approved', JSON.stringify(approvedVendors));
@@ -210,26 +256,93 @@
     function updateCartUI() { let total = shoppingCart.reduce((s, i) => s + i.qty, 0); document.getElementById('cartCount').innerText = total; }
     function openAirtelPayment() { window.location.href = `tel:*185*${AIRTEL_NUMBER}*5000#`; showToast("Opening Airtel Money USSD. Complete payment of 5,000 UGX"); }
     
-    // Image upload
-    const imageUploadArea = document.getElementById('imageUploadArea');
-    const imageInput = document.getElementById('productImageInput');
+    // Request camera and gallery permissions
+    async function requestPermissions() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(track => track.stop());
+            showToast("Camera access granted!");
+            return true;
+        } catch (err) {
+            showToast("Camera permission denied. You can still upload from gallery.");
+            return false;
+        }
+    }
+    
+    // Multi-image upload handling (up to 4 images)
+    const imagesInput = document.getElementById('productImagesInput');
     const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-    if (imageUploadArea) imageUploadArea.addEventListener('click', () => imageInput?.click());
-    if (imageInput) {
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    currentProductImage = event.target.result;
-                    if (imagePreviewContainer) imagePreviewContainer.innerHTML = `<div class="preview-item"><img src="${currentProductImage}"><span class="remove-image" onclick="removeImage()">✖</span></div>`;
-                    showToast("Image selected!");
-                };
-                reader.readAsDataURL(file);
+    const cameraBtn = document.getElementById('cameraBtn');
+    const galleryBtn = document.getElementById('galleryBtn');
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    
+    // Camera button - request permission and open camera
+    if (cameraBtn) {
+        cameraBtn.addEventListener('click', async () => {
+            await requestPermissions();
+            if (imagesInput) {
+                imagesInput.setAttribute('capture', 'environment');
+                imagesInput.click();
             }
         });
     }
-    window.removeImage = function() { currentProductImage = null; if(imagePreviewContainer) imagePreviewContainer.innerHTML = ''; if(imageInput) imageInput.value = ''; showToast("Image removed"); };
+    
+    // Gallery button
+    if (galleryBtn) {
+        galleryBtn.addEventListener('click', () => {
+            if (imagesInput) {
+                imagesInput.removeAttribute('capture');
+                imagesInput.click();
+            }
+        });
+    }
+    
+    // Image upload area click
+    if (imageUploadArea) {
+        imageUploadArea.addEventListener('click', () => {
+            if (imagesInput) imagesInput.click();
+        });
+    }
+    
+    if (imagesInput) {
+        imagesInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            if (currentImagesArray.length + files.length > 4) {
+                showToast("You can only upload up to 4 images total");
+                return;
+            }
+            
+            files.forEach((file, index) => {
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        currentImagesArray.push(event.target.result);
+                        updateImagePreview();
+                        showToast(`Image ${currentImagesArray.length}/4 added`);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    }
+    
+    function updateImagePreview() {
+        if (imagePreviewContainer) {
+            imagePreviewContainer.innerHTML = currentImagesArray.map((img, idx) => `
+                <div class="preview-item">
+                    <img src="${img}">
+                    <span class="remove-image" onclick="removeImage(${idx})">✖</span>
+                </div>
+            `).join('');
+        }
+    }
+    
+    window.removeImage = function(idx) {
+        currentImagesArray.splice(idx, 1);
+        updateImagePreview();
+        if (imagesInput) imagesInput.value = '';
+        showToast(`Image removed. ${currentImagesArray.length}/4 remaining`);
+    };
     
     // Product Detail Modal with Gallery
     function openProductDetail(product) {
@@ -405,7 +518,7 @@
         let grid = document.getElementById('productsGrid');
         if (filtered.length === 0) { grid.innerHTML = `<div style="text-align:center; padding:2rem;">No products found</div>`; return; }
         grid.innerHTML = filtered.map(p => {
-            let imgHtml = p.image ? `<div class="product-img"><img src="${p.image}" alt="${p.name}"></div>` : `<div class="product-img">📦</div>`;
+            let imgHtml = p.images && p.images[0] ? `<div class="product-img"><img src="${p.images[0]}" alt="${p.name}"></div>` : `<div class="product-img">📦</div>`;
             return `<div class="product-card" onclick='openProductDetail(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
                 ${imgHtml}
                 <div class="product-info">
@@ -490,13 +603,24 @@
         let name = document.getElementById('prodName').value.trim(), price = parseInt(document.getElementById('prodPrice').value), category = document.getElementById('prodCategory').value, desc = document.getElementById('prodDesc').value.trim();
         if (!name || isNaN(price)) { alert("Valid name & price"); return; }
         let vendorInfo = approvedVendors.find(v => v.phone === currentVendor);
-        allProducts.push({ id: Date.now(), name, price, category, description: desc, image: currentProductImage, images: currentProductImage ? [currentProductImage] : [], vendorPhone: currentVendor, vendorName: vendorInfo.name });
+        allProducts.push({ 
+            id: Date.now(), 
+            name, 
+            price, 
+            category, 
+            description: desc, 
+            images: [...currentImagesArray],
+            vendorPhone: currentVendor, 
+            vendorName: vendorInfo.name 
+        });
         saveAll();
         renderMarketplace();
         loadVendorProducts();
         document.getElementById('prodName').value = ''; document.getElementById('prodPrice').value = ''; document.getElementById('prodDesc').value = '';
-        currentProductImage = null; if(imagePreviewContainer) imagePreviewContainer.innerHTML = ''; if(imageInput) imageInput.value = '';
-        showToast("Product published!");
+        currentImagesArray = []; 
+        if(imagePreviewContainer) imagePreviewContainer.innerHTML = ''; 
+        if(imagesInput) imagesInput.value = '';
+        showToast(`Product published with ${currentImagesArray.length} images!`);
     };
     
     // Profile
@@ -535,4 +659,5 @@
     updateCartUI();
 </script>
 </body>
-</html>
+                </html>                    
+        
