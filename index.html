@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -45,24 +45,11 @@
         
         .cart-icon-header { background: #f4a261; padding: 8px 16px; border-radius: 40px; display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; }
         
-        .sync-button-header {
-            background: #27ae60;
-            padding: 8px 12px;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.7rem;
-            color: white;
-        }
-        
         .categories-scroll { display: flex; gap: 10px; overflow-x: auto; margin-top: 12px; padding-bottom: 4px; }
         .cat-chip { background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); padding: 6px 16px; border-radius: 40px; font-size: 0.75rem; color: white; cursor: pointer; white-space: nowrap; }
         .cat-chip.active { background: #f4a261; color: #1e2a2a; }
         
-        .container-main { max-width: 1300px; margin: 1.5rem auto; padding: 0 1rem; }
+        .container-main { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
         .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; }
         
         .product-card {
@@ -99,8 +86,6 @@
         input, select, textarea { width: 100%; padding: 10px 14px; margin: 6px 0; border-radius: 40px; border: 1.5px solid #e2e8f0; }
         button { background: #1a3a32; color: white; border: none; padding: 10px; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 6px; }
         .btn-airtel { background: #E60000; color: white; font-size: 1rem; padding: 12px; }
-        .btn-export { background: #27ae60; }
-        .btn-import { background: #2980b9; }
         
         .product-detail-modal .modal-card { max-width: 550px; padding: 0; overflow: hidden; }
         .gallery-container { position: relative; background: #000; }
@@ -144,8 +129,7 @@
         footer { text-align: center; font-size: 0.7rem; color: #94a3b8; padding: 1rem; }
         .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1a3a32; color: white; padding: 8px 20px; border-radius: 40px; z-index: 1100; font-size: 0.8rem; }
         .airtel-highlight { background: #E60000; color: white; padding: 12px; border-radius: 60px; text-align: center; font-weight: bold; margin: 10px 0; }
-        .sync-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-        .sync-buttons button { flex: 1; font-size: 0.8rem; }
+        .sync-status { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 20px; font-size: 0.6rem; z-index: 101; }
         .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -153,16 +137,15 @@
 </head>
 <body>
 
+<div class="sync-status" id="syncStatus">🔄 Connecting...</div>
+
 <div class="header">
     <div class="brand-flex">
         <div class="logo-area">
             <div class="graphic-logo"><i class="fas fa-chart-line"></i></div>
             <div class="brand-text"><h1>CreedMarket</h1><p><i class="fas fa-map-marker-alt"></i> Uganda • Airtel Money Only</p></div>
         </div>
-        <div style="display: flex; gap: 8px;">
-            <div class="sync-button-header" id="quickSyncBtn"><i class="fas fa-share-alt"></i> Share</div>
-            <div class="cart-icon-header" id="cartIconBtn"><i class="fas fa-bag-shopping"></i> <span id="cartCount">0</span></div>
-        </div>
+        <div class="cart-icon-header" id="cartIconBtn"><i class="fas fa-bag-shopping"></i> <span id="cartCount">0</span></div>
     </div>
     <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search products, vendors..."></div>
     <div class="categories-scroll" id="categoryList">
@@ -185,28 +168,7 @@
     <button class="nav-item" id="adminSecretTrigger"><i class="fas fa-user-cog"></i><span>Admin</span><span id="adminPendingBadge" class="notification-badge" style="display:none;">0</span></button>
 </div>
 
-<!-- Quick Sync Modal (for easy sharing) -->
-<div id="quickSyncModal" class="modal">
-    <div class="modal-card">
-        <span id="closeQuickSync" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span>
-        <h3><i class="fas fa-share-alt"></i> Share Products</h3>
-        <div style="text-align:center; padding:10px;">
-            <p><strong>Share your products with others:</strong></p>
-            <button id="quickExportBtn" class="btn-export" style="margin:10px 0;"><i class="fas fa-download"></i> 📤 Export Products</button>
-            <p style="margin:10px 0;">⬇️ OR ⬇️</p>
-            <p><strong>Get products from someone:</strong></p>
-            <button id="quickImportBtn" class="btn-import" style="margin:10px 0;"><i class="fas fa-upload"></i> 📥 Import Products</button>
-        </div>
-        <div style="background:#f0fdf4; padding:12px; border-radius:16px; margin-top:10px;">
-            <i class="fas fa-info-circle"></i> <strong>How to share:</strong><br>
-            1. Click "Export" to save a file<br>
-            2. Send the file via WhatsApp<br>
-            3. Others click "Import" to see your products
-        </div>
-    </div>
-</div>
-
-<!-- Product Detail Modal -->
+<!-- All Modals -->
 <div id="productDetailModal" class="modal product-detail-modal">
     <div class="modal-card">
         <span id="closeDetailModal" style="position:absolute; right:15px; top:10px; font-size:1.8rem; cursor:pointer; z-index:20; color:white; background:rgba(0,0,0,0.5); width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center;">&times;</span>
@@ -215,13 +177,10 @@
     </div>
 </div>
 
-<!-- Cart Modal -->
 <div id="cartModal" class="modal"><div class="modal-card"><span id="closeCart" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-bag-shopping"></i> Cart</h3><div id="cartItemsList"></div><div id="cartTotal" style="font-weight:bold; margin:1rem 0;"></div><button id="checkoutOrderBtn">Place Order</button><div id="orderFeedback"></div></div></div>
 
-<!-- Registration Modal -->
 <div id="registerModal" class="modal"><div class="modal-card"><span id="closeReg" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-handshake"></i> Become a seller</h3><div class="airtel-highlight"><i class="fas fa-mobile-alt"></i> Pay 5,000 UGX via Airtel Money<br><strong style="font-size: 1.3rem;">0709298041</strong></div><button id="payAirtelBtn" class="btn-airtel"><i class="fas fa-circle"></i> Pay with Airtel Money (5,000 UGX)</button><div style="text-align:center; margin:10px;">— After payment, complete form —</div><input type="text" id="regBusiness" placeholder="Business name"><input type="tel" id="regPhoneNum" placeholder="Your phone number"><input type="text" id="regTxnRef" placeholder="Airtel transaction reference"><button id="submitRegReq">Request approval</button><div id="regMsg"></div></div></div>
 
-<!-- Vendor Dashboard -->
 <div id="vendorModal" class="modal">
     <div class="modal-card">
         <span id="closeVendor" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span>
@@ -242,55 +201,115 @@
     </div>
 </div>
 
-<!-- Profile Modal -->
 <div id="profileModal" class="modal"><div class="modal-card"><span id="closeProfile" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-user-circle"></i> My Profile</h3><div id="profileLoginArea"><input type="tel" id="profilePhoneInput" placeholder="Enter your phone number"><button id="profileLoginBtn">Login to Profile</button></div><div id="profileContent" style="display:none;"><div id="profileInfo"></div><div style="margin-top:1rem;"><h4><i class="fas fa-bell"></i> Notifications <span id="notificationCount" style="background:#e74c3c; color:white; padding:2px 8px; border-radius:20px; font-size:0.7rem;">0</span></h4><div id="notificationsList"></div></div><div style="margin-top:1rem;"><h4><i class="fas fa-comments"></i> Messages</h4><div id="conversationsList"></div><div id="chatArea" style="display:none;"><div id="chatWith"></div><div id="chatMessages"></div><div class="message-input-area"><input type="text" id="chatMessageInput" placeholder="Type a message..."><button id="sendMessageBtn">Send</button></div></div></div></div></div></div>
 
-<!-- Admin Panel -->
 <div id="adminModal" class="modal"><div class="modal-card"><span id="closeAdmin" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-shield-alt"></i> Admin Console</h3><input type="password" id="adminPass" placeholder="Admin password: creed2561"><button id="adminLoginBtn">Unlock Admin Panel</button><div id="adminContent" style="display:none; margin-top: 1rem;">
-    <div class="sync-buttons">
-        <button id="exportProductsBtn" class="btn-export"><i class="fas fa-download"></i> 📤 Export Products</button>
-        <button id="importProductsBtn" class="btn-import"><i class="fas fa-upload"></i> 📥 Import Products</button>
+    <div style="background:#e8f5e9; padding:10px; border-radius:16px; margin-bottom:15px;">
+        <i class="fas fa-cloud-upload-alt"></i> <strong>Live Cloud Sync Active</strong><br>
+        <small>All data is automatically shared across all users</small>
     </div>
-    <div class="sync-buttons" style="margin-top: 8px;">
-        <button id="exportAllDataBtn" class="btn-export"><i class="fas fa-database"></i> 📤 Export ALL Data</button>
-        <button id="importAllDataBtn" class="btn-import"><i class="fas fa-database"></i> 📥 Import ALL Data</button>
-    </div>
-    
-    <h4 style="margin-top: 20px;">⏳ Pending Sellers</h4>
+    <h4>⏳ Pending Sellers</h4>
     <div id="pendingList"></div>
-    
     <h4 style="margin-top: 1rem;">✅ Approved Vendors</h4>
     <div id="approvedList"></div>
-    
     <button id="resetDataBtn" style="background:#c0392b; margin-top:15px;">Reset All Data</button>
 </div></div></div>
 
 <script>
-    // Data stores
-    let approvedVendors = JSON.parse(localStorage.getItem('CM_approved')) || [];
-    let pendingVendors = JSON.parse(localStorage.getItem('CM_pending')) || [];
-    let allProducts = JSON.parse(localStorage.getItem('CM_products')) || [];
-    let shoppingCart = JSON.parse(localStorage.getItem('CM_cart')) || [];
-    let orders = JSON.parse(localStorage.getItem('CM_orders')) || [];
-    let messages = JSON.parse(localStorage.getItem('CM_messages')) || [];
-    let notifications = JSON.parse(localStorage.getItem('CM_notifications')) || [];
+    // ========== GOOGLE SHEETS CLOUD DATABASE ==========
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzN1D4htjrCDUyfrZFJslWSI7QQfagnuD-qv4jDDdCnv_u0TmZ0RPAC7kh87VngW1k/exec";
+    
+    let approvedVendors = [];
+    let pendingVendors = [];
+    let allProducts = [];
+    let shoppingCart = [];
+    let orders = [];
+    let messages = [];
+    let notifications = [];
     
     const ADMIN_PASSWORD = "creed2561";
     const AIRTEL_NUMBER = "0709298041";
     let currentUserId = null;
     let currentChatWith = null;
     let currentImagesArray = [];
+    let isSyncing = false;
     
-    function saveAll() {
-        localStorage.setItem('CM_approved', JSON.stringify(approvedVendors));
-        localStorage.setItem('CM_pending', JSON.stringify(pendingVendors));
-        localStorage.setItem('CM_products', JSON.stringify(allProducts));
-        localStorage.setItem('CM_cart', JSON.stringify(shoppingCart));
-        localStorage.setItem('CM_orders', JSON.stringify(orders));
-        localStorage.setItem('CM_messages', JSON.stringify(messages));
-        localStorage.setItem('CM_notifications', JSON.stringify(notifications));
-        updateAdminBadge();
+    function updateSyncStatus(text, isError = false) {
+        const el = document.getElementById('syncStatus');
+        if (el) {
+            el.innerHTML = text;
+            el.style.background = isError ? 'rgba(231,76,60,0.8)' : 'rgba(0,0,0,0.6)';
+        }
+    }
+    
+    // Save to Google Sheets Cloud
+    async function saveToCloud() {
+        if (isSyncing) return;
+        try {
+            updateSyncStatus('📤 Saving...');
+            const cloudData = {
+                approved: approvedVendors,
+                pending: pendingVendors,
+                products: allProducts,
+                orders: orders,
+                messages: messages,
+                notifications: notifications,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            localStorage.setItem('CM_approved', JSON.stringify(approvedVendors));
+            localStorage.setItem('CM_pending', JSON.stringify(pendingVendors));
+            localStorage.setItem('CM_products', JSON.stringify(allProducts));
+            localStorage.setItem('CM_orders', JSON.stringify(orders));
+            localStorage.setItem('CM_messages', JSON.stringify(messages));
+            localStorage.setItem('CM_notifications', JSON.stringify(notifications));
+            localStorage.setItem('CM_cart', JSON.stringify(shoppingCart));
+            
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([JSON.stringify(cloudData)])
+            });
+            updateSyncStatus('✅ Saved');
+        } catch(e) {
+            updateSyncStatus('⚠️ Offline', true);
+        }
+    }
+    
+    // Load from Google Sheets Cloud
+    async function loadFromCloud() {
+        isSyncing = true;
+        updateSyncStatus('🔄 Loading...');
+        try {
+            approvedVendors = JSON.parse(localStorage.getItem('CM_approved')) || [];
+            pendingVendors = JSON.parse(localStorage.getItem('CM_pending')) || [];
+            allProducts = JSON.parse(localStorage.getItem('CM_products')) || [];
+            orders = JSON.parse(localStorage.getItem('CM_orders')) || [];
+            messages = JSON.parse(localStorage.getItem('CM_messages')) || [];
+            notifications = JSON.parse(localStorage.getItem('CM_notifications')) || [];
+            shoppingCart = JSON.parse(localStorage.getItem('CM_cart')) || [];
+            
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    const cloudData = JSON.parse(data[0]);
+                    if (cloudData.products) {
+                        allProducts = cloudData.products;
+                        approvedVendors = cloudData.approved || [];
+                        pendingVendors = cloudData.pending || [];
+                        updateSyncStatus(`✅ ${allProducts.length} products`);
+                        showToast(`Loaded ${allProducts.length} products from cloud`);
+                    }
+                }
+            } catch(e) { console.log("Cloud load fallback to local"); }
+        } catch(e) { console.log("Load error", e); }
+        
+        isSyncing = false;
         renderMarketplace();
+        updateAdminBadge();
+        updateCartUI();
     }
     
     function showToast(msg) { let t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
@@ -307,107 +326,6 @@
             badge.style.display = 'none';
         }
     }
-    
-    // EXPORT FUNCTIONS
-    function downloadJSON(data, filename) {
-        const jsonStr = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonStr], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast(`✅ Downloaded: ${filename}`);
-    }
-    
-    function importJSON(callback) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'application/json';
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                try {
-                    const data = JSON.parse(ev.target.result);
-                    callback(data);
-                    showToast('✅ Import successful!');
-                } catch (err) {
-                    showToast('❌ Invalid JSON file');
-                }
-            };
-            reader.readAsText(file);
-        };
-        input.click();
-    }
-    
-    // Quick Sync buttons
-    document.getElementById('quickSyncBtn')?.addEventListener('click', () => {
-        document.getElementById('quickSyncModal').style.display = 'flex';
-    });
-    document.getElementById('closeQuickSync')?.addEventListener('click', () => {
-        document.getElementById('quickSyncModal').style.display = 'none';
-    });
-    document.getElementById('quickExportBtn')?.addEventListener('click', () => {
-        downloadJSON(allProducts, `creedmarket_products_${new Date().toISOString().slice(0,19)}.json`);
-        document.getElementById('quickSyncModal').style.display = 'none';
-    });
-    document.getElementById('quickImportBtn')?.addEventListener('click', () => {
-        importJSON((data) => {
-            allProducts = data;
-            saveAll();
-            showToast(`✅ Imported ${allProducts.length} products!`);
-        });
-        document.getElementById('quickSyncModal').style.display = 'none';
-    });
-    
-    // Export Products
-    document.getElementById('exportProductsBtn')?.addEventListener('click', () => {
-        downloadJSON(allProducts, `creedmarket_products_${new Date().toISOString().slice(0,19)}.json`);
-    });
-    
-    // Import Products
-    document.getElementById('importProductsBtn')?.addEventListener('click', () => {
-        importJSON((data) => {
-            allProducts = data;
-            saveAll();
-            showToast(`✅ Imported ${allProducts.length} products!`);
-        });
-    });
-    
-    // Export ALL Data
-    document.getElementById('exportAllDataBtn')?.addEventListener('click', () => {
-        const allData = {
-            products: allProducts,
-            pending: pendingVendors,
-            approved: approvedVendors,
-            orders: orders,
-            messages: messages,
-            notifications: notifications,
-            exportDate: new Date().toISOString()
-        };
-        downloadJSON(allData, `creedmarket_full_backup_${new Date().toISOString().slice(0,19)}.json`);
-    });
-    
-    // Import ALL Data
-    document.getElementById('importAllDataBtn')?.addEventListener('click', () => {
-        importJSON((data) => {
-            if (data.products) allProducts = data.products;
-            if (data.pending) pendingVendors = data.pending;
-            if (data.approved) approvedVendors = data.approved;
-            if (data.orders) orders = data.orders;
-            if (data.messages) messages = data.messages;
-            if (data.notifications) notifications = data.notifications;
-            saveAll();
-            showToast('✅ Full data import complete!');
-            loadAdminDashboard();
-            renderMarketplace();
-        });
-    });
     
     function compressImage(file, maxWidth = 800, quality = 0.6) {
         return new Promise((resolve, reject) => {
@@ -496,7 +414,7 @@
     window.changeSlide = function(direction) { let newIndex = window.currentSlideIndex + direction; if (newIndex < 0) newIndex = window.totalSlides - 1; if (newIndex >= window.totalSlides) newIndex = 0; goToSlide(newIndex); };
     window.goToSlide = function(index) { let slides = document.querySelectorAll('.gallery-slide'); let dots = document.querySelectorAll('.gallery-dot'); if (!slides.length) return; slides.forEach((s, i) => s.classList.toggle('active', i === index)); dots.forEach((d, i) => d.classList.toggle('active', i === index)); window.currentSlideIndex = index; };
     window.startChatFromDetail = (vendorPhone) => { document.getElementById('productDetailModal').style.display = 'none'; if (!currentUserId) { alert("Login to profile first"); document.getElementById('profileModal').style.display = 'flex'; return; } document.getElementById('profileModal').style.display = 'flex'; loadChat(vendorPhone); };
-    window.addToCartFromDetail = (productId) => { let prod = allProducts.find(x => x.id === productId); if (prod) { let existing = shoppingCart.find(i => i.id === productId); existing ? existing.qty++ : shoppingCart.push({ id: prod.id, name: prod.name, price: prod.price, qty: 1 }); saveAll(); updateCartUI(); showToast(`✓ ${prod.name} added`); document.getElementById('productDetailModal').style.display = 'none'; } };
+    window.addToCartFromDetail = (productId) => { let prod = allProducts.find(x => x.id === productId); if (prod) { let existing = shoppingCart.find(i => i.id === productId); existing ? existing.qty++ : shoppingCart.push({ id: prod.id, name: prod.name, price: prod.price, qty: 1 }); saveToCloud(); updateCartUI(); showToast(`✓ ${prod.name} added`); document.getElementById('productDetailModal').style.display = 'none'; } };
     
     function placeOrder() {
         if (shoppingCart.length === 0) { alert("Cart empty"); return; }
@@ -504,14 +422,14 @@
         let orderItems = [...shoppingCart];
         orderItems.forEach(item => { let product = allProducts.find(p => p.id === item.id); if (product && product.vendorPhone) { notifications.push({ id: Date.now() + Math.random(), userId: product.vendorPhone, type: 'order', title: 'New Order!', message: `${currentUserId || 'Someone'} ordered ${item.name} x${item.qty}`, timestamp: new Date().toISOString(), read: false, orderId: orderId }); } });
         orders.push({ id: orderId, items: orderItems, total: orderItems.reduce((s, i) => s + (i.price * i.qty), 0), customer: currentUserId || 'Guest', date: new Date().toISOString() });
-        shoppingCart = []; saveAll(); updateCartUI(); document.getElementById('orderFeedback').innerHTML = "<div style='background:#d1fae5; padding:12px; border-radius:20px;'>✅ Order placed!</div>"; setTimeout(() => { document.getElementById('cartModal').style.display = 'none'; }, 1500); showToast("Order placed!"); updateProfileNotifications();
+        shoppingCart = []; saveToCloud(); updateCartUI(); document.getElementById('orderFeedback').innerHTML = "<div style='background:#d1fae5; padding:12px; border-radius:20px;'>✅ Order placed!</div>"; setTimeout(() => { document.getElementById('cartModal').style.display = 'none'; }, 1500); showToast("Order placed!"); updateProfileNotifications();
     }
     
-    function sendMessage(toPhone, text) { if (!text.trim() || !currentUserId) return; messages.push({ id: Date.now(), from: currentUserId, to: toPhone, text: text, timestamp: new Date().toISOString(), read: false }); notifications.push({ id: Date.now(), userId: toPhone, type: 'message', title: 'New message', message: `${currentUserId}: ${text.substring(0, 50)}`, timestamp: new Date().toISOString(), read: false }); saveAll(); showToast("Message sent"); loadChat(toPhone); updateProfileNotifications(); }
+    function sendMessage(toPhone, text) { if (!text.trim() || !currentUserId) return; messages.push({ id: Date.now(), from: currentUserId, to: toPhone, text: text, timestamp: new Date().toISOString(), read: false }); notifications.push({ id: Date.now(), userId: toPhone, type: 'message', title: 'New message', message: `${currentUserId}: ${text.substring(0, 50)}`, timestamp: new Date().toISOString(), read: false }); saveToCloud(); showToast("Message sent"); loadChat(toPhone); updateProfileNotifications(); }
     function loadChat(withPhone) { if (!currentUserId) return; currentChatWith = withPhone; let chatMessages = messages.filter(m => (m.from === currentUserId && m.to === withPhone) || (m.from === withPhone && m.to === currentUserId)); chatMessages.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)); document.getElementById('chatMessages').innerHTML = chatMessages.map(m => `<div class="chat-message ${m.from === currentUserId ? 'sent' : ''}"><strong>${m.from === currentUserId ? 'Me' : m.from}:</strong> ${m.text}<br><small>${new Date(m.timestamp).toLocaleTimeString()}</small></div>`).join(''); document.getElementById('chatArea').style.display = 'block'; document.getElementById('chatWith').innerHTML = `<strong><i class="fas fa-comment"></i> Chat with ${withPhone}</strong>`; }
     function loadProfile() { if (!currentUserId) return; let vendor = approvedVendors.find(v => v.phone === currentUserId); document.getElementById('profileInfo').innerHTML = `<div style="text-align:center;"><i class="fas fa-user-circle" style="font-size:3rem; color:#e67e22;"></i><h3>${vendor ? vendor.name : 'Customer'}</h3><p>📞 ${currentUserId}</p><p>${vendor ? '✅ Verified Seller' : '👤 Buyer Account'}</p></div>`; updateProfileNotifications(); loadConversations(); }
     function updateProfileNotifications() { let userNotifs = notifications.filter(n => n.userId === currentUserId && !n.read); let badge = document.getElementById('profileNotificationBadge'); let countSpan = document.getElementById('notificationCount'); if (userNotifs.length > 0) { badge.style.display = 'flex'; badge.innerText = userNotifs.length; if(countSpan) countSpan.innerText = userNotifs.length; } else { badge.style.display = 'none'; if(countSpan) countSpan.innerText = '0'; } let notifContainer = document.getElementById('notificationsList'); if (notifContainer && currentUserId) { let allUserNotifs = notifications.filter(n => n.userId === currentUserId).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); notifContainer.innerHTML = allUserNotifs.map(n => `<div class="order-notification" style="${n.read ? 'opacity:0.7;' : 'background:#fef3c7;'}"><strong>${n.title}</strong><br><small>${n.message}</small><br><span style="font-size:0.6rem;">${new Date(n.timestamp).toLocaleString()}</span><button onclick="markNotificationRead('${n.id}')" style="background:#e67e22; padding:4px 8px; font-size:0.7rem; width:auto; margin-top:5px;">Mark read</button></div>`).join(''); if (allUserNotifs.length === 0) notifContainer.innerHTML = "<p>No notifications</p>"; } }
-    window.markNotificationRead = (id) => { let notif = notifications.find(n => n.id == id); if(notif) notif.read = true; saveAll(); updateProfileNotifications(); };
+    window.markNotificationRead = (id) => { let notif = notifications.find(n => n.id == id); if(notif) notif.read = true; saveToCloud(); updateProfileNotifications(); };
     function loadConversations() { let involvedPhones = [...new Set(messages.filter(m => m.from === currentUserId || m.to === currentUserId).map(m => m.from === currentUserId ? m.to : m.from))]; let container = document.getElementById('conversationsList'); if (involvedPhones.length === 0) { container.innerHTML = "<p>No conversations yet.</p>"; return; } container.innerHTML = involvedPhones.map(phone => `<div style="background:#f1f5f9; padding:10px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between;"><div><i class="fas fa-user"></i> ${phone}</div><button onclick="loadChat('${phone}')" style="background:#e67e22; width:auto; padding:6px 12px;">Chat</button></div>`).join(''); }
     function getContactHtml(phone) { let p = phone.replace(/\s/g, ''); if(p.startsWith('0')) p = '256' + p.substring(1); return `<div style="display:flex; gap:6px; margin-top:6px;"><a href="tel:${p}" style="background:#f1f5f9; padding:4px 10px; border-radius:30px; font-size:0.7rem; text-decoration:none; color:#2c5f4e;"><i class="fas fa-phone"></i> Call</a><a href="https://wa.me/${p}" style="background:#25D366; padding:4px 10px; border-radius:30px; font-size:0.7rem; text-decoration:none; color:white;"><i class="fab fa-whatsapp"></i> WhatsApp</a>${currentUserId ? `<button onclick="startChat('${phone}')" style="background:#e67e22; padding:4px 10px; border-radius:30px; font-size:0.7rem; width:auto;">Message</button>` : ''}</div>`; }
     window.startChat = (vendorPhone) => { if (!currentUserId) { alert("Login to profile first"); document.getElementById('profileModal').style.display = 'flex'; return; } document.getElementById('profileModal').style.display = 'flex'; loadChat(vendorPhone); };
@@ -544,7 +462,7 @@
     
     const cartModal = document.getElementById('cartModal');
     document.getElementById('cartIconBtn').onclick = () => { let itemsHtml = '', total = 0; shoppingCart.forEach((item, idx) => { let sum = item.price * item.qty; total += sum; itemsHtml += `<div style="display:flex; justify-content:space-between; padding:6px 0;"><div><strong>${item.name}</strong> x${item.qty}</div><div>UGX ${sum.toLocaleString()} <button onclick="removeCartItem(${idx})" style="background:#e74c3c; width:auto; padding:2px 8px;">✖</button></div></div>`; }); document.getElementById('cartItemsList').innerHTML = itemsHtml || "<p>Empty</p>"; document.getElementById('cartTotal').innerHTML = `Total: UGX ${total.toLocaleString()}`; cartModal.style.display = 'flex'; };
-    window.removeCartItem = (idx) => { shoppingCart.splice(idx, 1); saveAll(); updateCartUI(); document.getElementById('cartIconBtn').click(); renderMarketplace(); };
+    window.removeCartItem = (idx) => { shoppingCart.splice(idx, 1); saveToCloud(); updateCartUI(); document.getElementById('cartIconBtn').click(); renderMarketplace(); };
     document.getElementById('closeCart').onclick = () => cartModal.style.display = 'none';
     document.getElementById('checkoutOrderBtn').onclick = placeOrder;
     
@@ -558,7 +476,7 @@
         if (approvedVendors.find(v => v.phone === phone)) { alert("Already approved"); return; }
         if (pendingVendors.find(v => v.phone === phone)) { alert("Pending already"); return; }
         pendingVendors.push({ name, phone, transactionId: txn, requestedAt: new Date().toISOString() });
-        saveAll();
+        saveToCloud();
         document.getElementById('regMsg').innerHTML = "<span style='color:green;'>✓ Request sent! Admin will review.</span>";
         showToast("Registration request sent!");
         setTimeout(() => regModal.style.display = 'none', 1500);
@@ -570,8 +488,8 @@
     let currentVendor = null;
     document.getElementById('doVendorLogin').onclick = () => { let phone = document.getElementById('vendorLoginPhone').value.trim(); let vendor = approvedVendors.find(v => v.phone === phone); if (vendor) { currentVendor = phone; document.getElementById('vendorLoginDiv').style.display = 'none'; document.getElementById('vendorDashboardPanel').style.display = 'block'; loadVendorProducts(); } else { let pending = pendingVendors.find(v => v.phone === phone); if(pending) alert("Pending approval. Please wait."); else alert("Not approved yet. Register first."); } };
     function loadVendorProducts() { let myProducts = allProducts.filter(p => p.vendorPhone === currentVendor); let container = document.getElementById('vendorProductsList'); container.innerHTML = myProducts.map(p => `<div style="background:#f8fafc; padding:8px; border-radius:16px; margin-bottom:6px;"><strong>${p.name}</strong> - UGX ${p.price}<br><button onclick="deleteProduct(${p.id})" style="background:#e76f51;">Delete</button></div>`).join(''); if (myProducts.length === 0) container.innerHTML = "<p>No products yet.</p>"; }
-    window.deleteProduct = (id) => { allProducts = allProducts.filter(p => p.id !== id); saveAll(); loadVendorProducts(); renderMarketplace(); showToast("Deleted"); };
-    document.getElementById('publishProductBtn').onclick = async () => { if (!currentVendor) { alert("Login first"); return; } let name = document.getElementById('prodName').value.trim(); let price = parseInt(document.getElementById('prodPrice').value); let category = document.getElementById('prodCategory').value; let desc = document.getElementById('prodDesc').value.trim(); if (!name || isNaN(price)) { alert("Valid name & price"); return; } let btn = document.getElementById('publishProductBtn'); let originalText = btn.innerHTML; btn.innerHTML = '<span class="loading-spinner"></span> Publishing...'; btn.disabled = true; setTimeout(() => { let vendorInfo = approvedVendors.find(v => v.phone === currentVendor); allProducts.push({ id: Date.now(), name, price, category, description: desc, images: [...currentImagesArray], vendorPhone: currentVendor, vendorName: vendorInfo.name }); saveAll(); renderMarketplace(); loadVendorProducts(); document.getElementById('prodName').value = ''; document.getElementById('prodPrice').value = ''; document.getElementById('prodDesc').value = ''; currentImagesArray = []; if(imagePreviewContainer) imagePreviewContainer.innerHTML = ''; if(imagesInput) imagesInput.value = ''; btn.innerHTML = originalText; btn.disabled = false; showToast(`✅ Product published!`); }, 100); };
+    window.deleteProduct = (id) => { allProducts = allProducts.filter(p => p.id !== id); saveToCloud(); loadVendorProducts(); renderMarketplace(); showToast("Deleted"); };
+    document.getElementById('publishProductBtn').onclick = async () => { if (!currentVendor) { alert("Login first"); return; } let name = document.getElementById('prodName').value.trim(); let price = parseInt(document.getElementById('prodPrice').value); let category = document.getElementById('prodCategory').value; let desc = document.getElementById('prodDesc').value.trim(); if (!name || isNaN(price)) { alert("Valid name & price"); return; } let btn = document.getElementById('publishProductBtn'); let originalText = btn.innerHTML; btn.innerHTML = '<span class="loading-spinner"></span> Publishing...'; btn.disabled = true; setTimeout(() => { let vendorInfo = approvedVendors.find(v => v.phone === currentVendor); allProducts.push({ id: Date.now(), name, price, category, description: desc, images: [...currentImagesArray], vendorPhone: currentVendor, vendorName: vendorInfo.name }); saveToCloud(); renderMarketplace(); loadVendorProducts(); document.getElementById('prodName').value = ''; document.getElementById('prodPrice').value = ''; document.getElementById('prodDesc').value = ''; currentImagesArray = []; if(imagePreviewContainer) imagePreviewContainer.innerHTML = ''; if(imagesInput) imagesInput.value = ''; btn.innerHTML = originalText; btn.disabled = false; showToast(`✅ Product published! Everyone can see it now.`); }, 100); };
     
     const profileModal = document.getElementById('profileModal');
     document.getElementById('profileNavBtn').onclick = () => profileModal.style.display = 'flex';
@@ -591,17 +509,16 @@
         const approvedDiv = document.getElementById('approvedList');
         if (approvedVendors.length === 0) { approvedDiv.innerHTML = "<p>No approved vendors yet.</p>"; }
         else { approvedDiv.innerHTML = approvedVendors.map(v => `<div style="background:#ecfdf5; padding:10px; border-radius:16px; margin-bottom:8px;">✅ <strong>${escapeHtml(v.name)}</strong> — ${v.phone}</div>`).join(''); }
-        document.getElementById('pendingCountDisplay').innerText = pendingVendors.length;
         document.getElementById('resetDataBtn').onclick = () => { if(confirm("Delete ALL data?")) { localStorage.clear(); location.reload(); } };
     }
     
-    window.approveVendor = (idx) => { let vendor = pendingVendors[idx]; if (vendor) { approvedVendors.push({ name: vendor.name, phone: vendor.phone }); pendingVendors.splice(idx, 1); saveAll(); loadAdminDashboard(); renderMarketplace(); showToast(`✅ ${vendor.name} approved!`); updateAdminBadge(); } };
+    window.approveVendor = (idx) => { let vendor = pendingVendors[idx]; if (vendor) { approvedVendors.push({ name: vendor.name, phone: vendor.phone }); pendingVendors.splice(idx, 1); saveToCloud(); loadAdminDashboard(); renderMarketplace(); showToast(`✅ ${vendor.name} approved!`); updateAdminBadge(); } };
     
     document.getElementById('closeDetailModal').onclick = () => document.getElementById('productDetailModal').style.display = 'none';
     window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
     
-    renderMarketplace();
+    loadFromCloud();
     updateCartUI();
 </script>
 </body>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  </html>                                              
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </html>
