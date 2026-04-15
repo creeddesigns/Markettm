@@ -130,7 +130,9 @@
         footer { text-align: center; font-size: 0.7rem; color: #94a3b8; padding: 1rem; }
         .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1a3a32; color: white; padding: 8px 20px; border-radius: 40px; z-index: 1100; font-size: 0.8rem; }
         .airtel-highlight { background: #E60000; color: white; padding: 12px; border-radius: 60px; text-align: center; font-weight: bold; margin: 10px 0; }
-        .permission-request { background: #fef3c7; padding: 10px; border-radius: 16px; margin: 10px 0; text-align: center; }
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -179,7 +181,7 @@
 <!-- Registration Modal -->
 <div id="registerModal" class="modal"><div class="modal-card"><span id="closeReg" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-handshake"></i> Become a seller</h3><div class="airtel-highlight"><i class="fas fa-mobile-alt"></i> Pay 5,000 UGX via Airtel Money<br><strong style="font-size: 1.3rem;">0709298041</strong></div><button id="payAirtelBtn" class="btn-airtel"><i class="fas fa-circle"></i> Pay with Airtel Money (5,000 UGX)</button><div style="text-align:center; margin:10px;">— After payment, complete form —</div><input type="text" id="regBusiness" placeholder="Business name"><input type="tel" id="regPhoneNum" placeholder="Your phone number"><input type="text" id="regTxnRef" placeholder="Airtel transaction reference"><button id="submitRegReq">Request approval</button><div id="regMsg"></div></div></div>
 
-<!-- Vendor Dashboard with Multi-Image Upload (up to 4 images) -->
+<!-- Vendor Dashboard with FAST Multi-Image Upload -->
 <div id="vendorModal" class="modal">
     <div class="modal-card">
         <span id="closeVendor" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span>
@@ -207,11 +209,10 @@
             <div class="image-upload-area" id="imageUploadArea">
                 <i class="fas fa-cloud-upload-alt" style="font-size:1.5rem; color:#e67e22;"></i>
                 <p>Tap to select multiple images (up to 4)</p>
-                <small style="color: #64748b;">You can select up to 4 product photos</small>
+                <small>Photos are compressed for fast upload</small>
                 <input type="file" id="productImagesInput" accept="image/*" multiple style="display:none;">
             </div>
             <div id="imagePreviewContainer" class="image-preview-grid"></div>
-            <div id="permissionMessage" class="permission-request" style="display:none;"></div>
             
             <button id="publishProductBtn">Publish Product</button>
             <hr>
@@ -240,7 +241,7 @@
     const AIRTEL_NUMBER = "0709298041";
     let currentUserId = null;
     let currentChatWith = null;
-    let currentImagesArray = []; // Array to store up to 4 images
+    let currentImagesArray = [];
     
     function saveAll() {
         localStorage.setItem('CM_approved', JSON.stringify(approvedVendors));
@@ -256,30 +257,47 @@
     function updateCartUI() { let total = shoppingCart.reduce((s, i) => s + i.qty, 0); document.getElementById('cartCount').innerText = total; }
     function openAirtelPayment() { window.location.href = `tel:*185*${AIRTEL_NUMBER}*5000#`; showToast("Opening Airtel Money USSD. Complete payment of 5,000 UGX"); }
     
-    // Request camera and gallery permissions
-    async function requestPermissions() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            stream.getTracks().forEach(track => track.stop());
-            showToast("Camera access granted!");
-            return true;
-        } catch (err) {
-            showToast("Camera permission denied. You can still upload from gallery.");
-            return false;
-        }
+    // IMAGE COMPRESSION FUNCTION - Makes images smaller and faster
+    function compressImage(file, maxWidth = 800, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedDataUrl);
+                };
+                img.onerror = reject;
+            };
+            reader.onerror = reject;
+        });
     }
     
-    // Multi-image upload handling (up to 4 images)
+    // Multi-image upload with compression (FAST)
     const imagesInput = document.getElementById('productImagesInput');
     const imagePreviewContainer = document.getElementById('imagePreviewContainer');
     const cameraBtn = document.getElementById('cameraBtn');
     const galleryBtn = document.getElementById('galleryBtn');
     const imageUploadArea = document.getElementById('imageUploadArea');
     
-    // Camera button - request permission and open camera
     if (cameraBtn) {
         cameraBtn.addEventListener('click', async () => {
-            await requestPermissions();
             if (imagesInput) {
                 imagesInput.setAttribute('capture', 'environment');
                 imagesInput.click();
@@ -287,7 +305,6 @@
         });
     }
     
-    // Gallery button
     if (galleryBtn) {
         galleryBtn.addEventListener('click', () => {
             if (imagesInput) {
@@ -297,7 +314,6 @@
         });
     }
     
-    // Image upload area click
     if (imageUploadArea) {
         imageUploadArea.addEventListener('click', () => {
             if (imagesInput) imagesInput.click();
@@ -305,24 +321,26 @@
     }
     
     if (imagesInput) {
-        imagesInput.addEventListener('change', function(e) {
+        imagesInput.addEventListener('change', async function(e) {
             const files = Array.from(e.target.files);
             if (currentImagesArray.length + files.length > 4) {
                 showToast("You can only upload up to 4 images total");
                 return;
             }
             
-            files.forEach((file, index) => {
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        currentImagesArray.push(event.target.result);
-                        updateImagePreview();
-                        showToast(`Image ${currentImagesArray.length}/4 added`);
-                    };
-                    reader.readAsDataURL(file);
+            showToast(`Compressing ${files.length} image(s)...`);
+            
+            for (const file of files) {
+                try {
+                    const compressed = await compressImage(file, 800, 0.6);
+                    currentImagesArray.push(compressed);
+                    updateImagePreview();
+                    showToast(`Image ${currentImagesArray.length}/4 added`);
+                } catch (err) {
+                    showToast("Error compressing image");
                 }
-            });
+            }
+            if (imagesInput) imagesInput.value = '';
         });
     }
     
@@ -598,29 +616,50 @@
         if (myProducts.length === 0) container.innerHTML = "<p>No products yet.</p>";
     }
     window.deleteProduct = (id) => { allProducts = allProducts.filter(p => p.id !== id); saveAll(); loadVendorProducts(); renderMarketplace(); showToast("Deleted"); };
-    document.getElementById('publishProductBtn').onclick = () => {
+    
+    // FAST PUBLISH - with loading indicator
+    document.getElementById('publishProductBtn').onclick = async () => {
         if (!currentVendor) { alert("Login first"); return; }
-        let name = document.getElementById('prodName').value.trim(), price = parseInt(document.getElementById('prodPrice').value), category = document.getElementById('prodCategory').value, desc = document.getElementById('prodDesc').value.trim();
+        
+        let name = document.getElementById('prodName').value.trim();
+        let price = parseInt(document.getElementById('prodPrice').value);
+        let category = document.getElementById('prodCategory').value;
+        let desc = document.getElementById('prodDesc').value.trim();
+        
         if (!name || isNaN(price)) { alert("Valid name & price"); return; }
-        let vendorInfo = approvedVendors.find(v => v.phone === currentVendor);
-        allProducts.push({ 
-            id: Date.now(), 
-            name, 
-            price, 
-            category, 
-            description: desc, 
-            images: [...currentImagesArray],
-            vendorPhone: currentVendor, 
-            vendorName: vendorInfo.name 
-        });
-        saveAll();
-        renderMarketplace();
-        loadVendorProducts();
-        document.getElementById('prodName').value = ''; document.getElementById('prodPrice').value = ''; document.getElementById('prodDesc').value = '';
-        currentImagesArray = []; 
-        if(imagePreviewContainer) imagePreviewContainer.innerHTML = ''; 
-        if(imagesInput) imagesInput.value = '';
-        showToast(`Product published with ${currentImagesArray.length} images!`);
+        
+        let btn = document.getElementById('publishProductBtn');
+        let originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="loading-spinner"></span> Publishing...';
+        btn.disabled = true;
+        
+        setTimeout(() => {
+            let vendorInfo = approvedVendors.find(v => v.phone === currentVendor);
+            allProducts.push({ 
+                id: Date.now(), 
+                name, 
+                price, 
+                category, 
+                description: desc, 
+                images: [...currentImagesArray],
+                vendorPhone: currentVendor, 
+                vendorName: vendorInfo.name 
+            });
+            saveAll();
+            renderMarketplace();
+            loadVendorProducts();
+            
+            document.getElementById('prodName').value = ''; 
+            document.getElementById('prodPrice').value = ''; 
+            document.getElementById('prodDesc').value = '';
+            currentImagesArray = []; 
+            if(imagePreviewContainer) imagePreviewContainer.innerHTML = ''; 
+            if(imagesInput) imagesInput.value = '';
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            showToast(`✅ Product published with ${currentImagesArray.length} images!`);
+        }, 100);
     };
     
     // Profile
@@ -659,5 +698,4 @@
     updateCartUI();
 </script>
 </body>
-                </html>                    
-        
+                                                                                                                                                                                                                                                                                                                              </html>                                       
