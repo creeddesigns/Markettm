@@ -80,10 +80,12 @@
         .nav-item.active { color: #e67e22; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-card { background: white; border-radius: 28px; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 1.2rem; }
-        input, select, textarea { width: 100%; padding: 10px 14px; margin: 6px 0; border-radius: 40px; border: 1.5px solid #e2e8f0; }
-        button { background: #1a3a32; color: white; border: none; padding: 10px; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 6px; }
+        .modal-card { background: white; border-radius: 28px; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 1.5rem; }
+        input, select, textarea { width: 100%; padding: 10px 14px; margin: 8px 0; border-radius: 40px; border: 1.5px solid #e2e8f0; }
+        button { background: #1a3a32; color: white; border: none; padding: 12px; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; }
         .btn-airtel { background: #E60000; color: white; font-size: 1rem; padding: 12px; }
+        .btn-login { background: #e67e22; }
+        .btn-register { background: #27ae60; }
         
         .product-detail-modal .modal-card { max-width: 550px; padding: 0; overflow: hidden; }
         .gallery-container { position: relative; background: #000; }
@@ -131,6 +133,7 @@
         .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .switch-auth { text-align: center; margin-top: 15px; color: #e67e22; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -165,7 +168,48 @@
     <button class="nav-item" id="profileNavBtn"><i class="fas fa-user"></i><span>Profile</span></button>
 </div>
 
-<!-- All Modals -->
+<!-- Auth Modal -->
+<div id="authModal" class="modal">
+    <div class="modal-card">
+        <span id="closeAuth" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span>
+        <h3 id="authTitle"><i class="fas fa-sign-in-alt"></i> Login</h3>
+        <div id="authForm">
+            <input type="email" id="authEmail" placeholder="Email address" required>
+            <input type="password" id="authPassword" placeholder="Password" required>
+            <button id="authSubmitBtn" class="btn-login">Login</button>
+            <div class="switch-auth" id="switchAuthBtn">Don't have an account? <strong>Sign Up</strong></div>
+        </div>
+        <div id="authMessage" style="margin-top: 10px; text-align: center;"></div>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="modal">
+    <div class="modal-card">
+        <span id="closeProfile" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span>
+        <h3><i class="fas fa-user-circle"></i> My Profile</h3>
+        <div id="profileInfo"></div>
+        <div style="margin-top: 1rem;">
+            <h4><i class="fas fa-bell"></i> Notifications <span id="notificationCount" style="background:#e74c3c; color:white; padding:2px 8px; border-radius:20px; font-size:0.7rem;">0</span></h4>
+            <div id="notificationsList" style="max-height: 200px; overflow-y: auto;"></div>
+        </div>
+        <div style="margin-top: 1rem;">
+            <h4><i class="fas fa-comments"></i> Messages</h4>
+            <div id="conversationsList"></div>
+            <div id="chatArea" style="display:none;">
+                <div id="chatWith"></div>
+                <div id="chatMessages" style="max-height: 200px; overflow-y: auto; background:#f8fafc; border-radius: 20px; padding: 8px;"></div>
+                <div class="message-input-area">
+                    <input type="text" id="chatMessageInput" placeholder="Type a message...">
+                    <button id="sendMessageBtn">Send</button>
+                </div>
+            </div>
+        </div>
+        <button id="logoutBtn" style="background:#e74c3c; margin-top: 15px;">Logout</button>
+    </div>
+</div>
+
+<!-- Product Detail Modal -->
 <div id="productDetailModal" class="modal product-detail-modal">
     <div class="modal-card">
         <span id="closeDetailModal" style="position:absolute; right:15px; top:10px; font-size:1.8rem; cursor:pointer; z-index:20; color:white; background:rgba(0,0,0,0.5); width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center;">&times;</span>
@@ -174,15 +218,21 @@
     </div>
 </div>
 
+<!-- Cart Modal -->
 <div id="cartModal" class="modal"><div class="modal-card"><span id="closeCart" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-bag-shopping"></i> Cart</h3><div id="cartItemsList"></div><div id="cartTotal" style="font-weight:bold; margin:1rem 0;"></div><button id="checkoutOrderBtn">Place Order</button><div id="orderFeedback"></div></div></div>
 
-<div id="registerModal" class="modal"><div class="modal-card"><span id="closeReg" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-handshake"></i> Become a seller</h3><div class="airtel-highlight"><i class="fas fa-mobile-alt"></i> Pay 5,000 UGX via Airtel Money<br><strong style="font-size: 1.3rem;">0709298041</strong></div><button id="payAirtelBtn" class="btn-airtel"><i class="fas fa-circle"></i> Pay with Airtel Money (5,000 UGX)</button><div style="text-align:center; margin:10px;">— After payment, complete form —</div><input type="text" id="regBusiness" placeholder="Business name"><input type="tel" id="regPhoneNum" placeholder="Your phone number"><input type="text" id="regTxnRef" placeholder="Airtel transaction reference"><button id="submitRegReq">Request approval</button><div id="regMsg"></div></div></div>
+<!-- Vendor Registration Modal -->
+<div id="registerModal" class="modal"><div class="modal-card"><span id="closeReg" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-handshake"></i> Become a seller</h3><div class="airtel-highlight"><i class="fas fa-mobile-alt"></i> Pay 5,000 UGX via Airtel Money<br><strong style="font-size: 1.3rem;">0709298041</strong></div><button id="payAirtelBtn" class="btn-airtel"><i class="fas fa-circle"></i> Pay with Airtel Money (5,000 UGX)</button><div style="text-align:center; margin:10px;">— After payment, complete form —</div><input type="text" id="regBusiness" placeholder="Business name"><input type="email" id="regEmail" placeholder="Email address"><input type="tel" id="regPhoneNum" placeholder="Phone number"><input type="text" id="regTxnRef" placeholder="Airtel transaction reference"><button id="submitRegReq">Request approval</button><div id="regMsg"></div></div></div>
 
+<!-- Vendor Dashboard -->
 <div id="vendorModal" class="modal">
     <div class="modal-card">
         <span id="closeVendor" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span>
         <h3><i class="fas fa-chart-line"></i> Vendor panel</h3>
-        <div id="vendorLoginDiv"><input type="tel" id="vendorLoginPhone" placeholder="Phone number"><button id="doVendorLogin">Login</button></div>
+        <div id="vendorLoginDiv">
+            <input type="email" id="vendorEmailLogin" placeholder="Email address">
+            <button id="doVendorLogin">Login</button>
+        </div>
         <div id="vendorDashboardPanel" style="display:none;">
             <h4>Add Product</h4>
             <input type="text" id="prodName" placeholder="Product name">
@@ -198,11 +248,10 @@
     </div>
 </div>
 
-<div id="profileModal" class="modal"><div class="modal-card"><span id="closeProfile" style="float:right; font-size:1.5rem; cursor:pointer;">&times;</span><h3><i class="fas fa-user-circle"></i> My Profile</h3><div id="profileLoginArea"><input type="tel" id="profilePhoneInput" placeholder="Enter your phone number"><button id="profileLoginBtn">Login to Profile</button></div><div id="profileContent" style="display:none;"><div id="profileInfo"></div><div style="margin-top:1rem;"><h4><i class="fas fa-bell"></i> Notifications <span id="notificationCount" style="background:#e74c3c; color:white; padding:2px 8px; border-radius:20px; font-size:0.7rem;">0</span></h4><div id="notificationsList"></div></div><div style="margin-top:1rem;"><h4><i class="fas fa-comments"></i> Messages</h4><div id="conversationsList"></div><div id="chatArea" style="display:none;"><div id="chatWith"></div><div id="chatMessages"></div><div class="message-input-area"><input type="text" id="chatMessageInput" placeholder="Type a message..."><button id="sendMessageBtn">Send</button></div></div></div></div></div></div>
-
 <script>
     // ========== GOOGLE SHEETS CLOUD DATABASE ==========
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzN1D4htjrCDUyfrZFJslWSI7QQfagnuD-qv4jDDdCnv_u0TmZ0RPAC7kh87VngW1k/exec";
+    // YOUR GOOGLE SCRIPT URL - REPLACE THIS WITH YOUR ACTUAL URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRAH56zUSxEJG0IeWZoH9evLv2OquQyiinRtykbuEBV12rJTD_1y472fB7R-l0S27V/exec";
     const EMAIL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8u256oCiv2Cw0ureDiU3YxU6lw7d1OHlDpF7qLCUIMzp1GMBmIuLd-vMi1QKD0tDi/exec";
     
     let approvedVendors = JSON.parse(localStorage.getItem('CM_approved')) || [];
@@ -212,12 +261,14 @@
     let orders = JSON.parse(localStorage.getItem('CM_orders')) || [];
     let messages = JSON.parse(localStorage.getItem('CM_messages')) || [];
     let notifications = JSON.parse(localStorage.getItem('CM_notifications')) || [];
+    let users = JSON.parse(localStorage.getItem('CM_users')) || [];
     
     const AIRTEL_NUMBER = "0709298041";
-    let currentUserId = null;
+    let currentUser = null;
     let currentChatWith = null;
     let currentImagesArray = [];
     let isSyncing = false;
+    let isLoginMode = true;
     
     function updateSyncStatus(text, isError = false) {
         const el = document.getElementById('syncStatus');
@@ -228,13 +279,13 @@
     }
     
     // Send email notification
-    async function sendEmailNotification(name, phone, transaction) {
+    async function sendEmailNotification(name, email, phone, transaction) {
         try {
             await fetch(EMAIL_SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name, phone: phone, transaction: transaction })
+                body: JSON.stringify({ name: name, email: email, phone: phone, transaction: transaction })
             });
             console.log("Email sent to admin");
         } catch(e) { console.log("Email error", e); }
@@ -252,6 +303,7 @@
                 orders: orders,
                 messages: messages,
                 notifications: notifications,
+                users: users,
                 lastUpdated: new Date().toISOString()
             };
             
@@ -261,6 +313,7 @@
             localStorage.setItem('CM_orders', JSON.stringify(orders));
             localStorage.setItem('CM_messages', JSON.stringify(messages));
             localStorage.setItem('CM_notifications', JSON.stringify(notifications));
+            localStorage.setItem('CM_users', JSON.stringify(users));
             localStorage.setItem('CM_cart', JSON.stringify(shoppingCart));
             
             await fetch(SCRIPT_URL, {
@@ -269,7 +322,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify([JSON.stringify(cloudData)])
             });
-            updateSyncStatus('✅ Saved');
+            updateSyncStatus('✅ Saved to cloud');
         } catch(e) {
             updateSyncStatus('⚠️ Offline', true);
         }
@@ -286,6 +339,7 @@
             orders = JSON.parse(localStorage.getItem('CM_orders')) || [];
             messages = JSON.parse(localStorage.getItem('CM_messages')) || [];
             notifications = JSON.parse(localStorage.getItem('CM_notifications')) || [];
+            users = JSON.parse(localStorage.getItem('CM_users')) || [];
             shoppingCart = JSON.parse(localStorage.getItem('CM_cart')) || [];
             
             try {
@@ -297,7 +351,11 @@
                         allProducts = cloudData.products;
                         approvedVendors = cloudData.approved || [];
                         pendingVendors = cloudData.pending || [];
-                        updateSyncStatus(`✅ ${allProducts.length} products`);
+                        users = cloudData.users || [];
+                        updateSyncStatus(`✅ ${allProducts.length} products from cloud`);
+                        if (allProducts.length > 0) {
+                            showToast(`Loaded ${allProducts.length} products from cloud`);
+                        }
                     }
                 }
             } catch(e) { console.log("Cloud load fallback to local"); }
@@ -306,6 +364,136 @@
         isSyncing = false;
         renderMarketplace();
         updateCartUI();
+    }
+    
+    // Auth Functions
+    function showAuthModal() {
+        document.getElementById('authTitle').innerHTML = isLoginMode ? '<i class="fas fa-sign-in-alt"></i> Login' : '<i class="fas fa-user-plus"></i> Sign Up';
+        document.getElementById('authSubmitBtn').innerHTML = isLoginMode ? 'Login' : 'Sign Up';
+        document.getElementById('switchAuthBtn').innerHTML = isLoginMode ? "Don't have an account? <strong>Sign Up</strong>" : "Already have an account? <strong>Login</strong>";
+        document.getElementById('authModal').style.display = 'flex';
+        document.getElementById('authMessage').innerHTML = '';
+    }
+    
+    function handleAuth() {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value.trim();
+        
+        if (!email || !password) {
+            document.getElementById('authMessage').innerHTML = '<span style="color:#e74c3c;">Please fill all fields</span>';
+            return;
+        }
+        
+        if (isLoginMode) {
+            const user = users.find(u => u.email === email && u.password === password);
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('CM_currentUser', JSON.stringify(currentUser));
+                document.getElementById('authModal').style.display = 'none';
+                showToast(`Welcome back, ${user.email}!`);
+                loadProfile();
+            } else {
+                document.getElementById('authMessage').innerHTML = '<span style="color:#e74c3c;">Invalid email or password</span>';
+            }
+        } else {
+            if (users.find(u => u.email === email)) {
+                document.getElementById('authMessage').innerHTML = '<span style="color:#e74c3c;">Email already registered</span>';
+                return;
+            }
+            const newUser = { email: email, password: password, joined: new Date().toISOString() };
+            users.push(newUser);
+            currentUser = newUser;
+            localStorage.setItem('CM_users', JSON.stringify(users));
+            localStorage.setItem('CM_currentUser', JSON.stringify(currentUser));
+            saveToCloud();
+            document.getElementById('authModal').style.display = 'none';
+            showToast(`Account created! Welcome ${email}`);
+            loadProfile();
+        }
+    }
+    
+    function logout() {
+        currentUser = null;
+        localStorage.removeItem('CM_currentUser');
+        showToast("Logged out successfully");
+        document.getElementById('profileModal').style.display = 'none';
+        location.reload();
+    }
+    
+    function loadProfile() {
+        if (!currentUser) return;
+        let vendor = approvedVendors.find(v => v.email === currentUser.email);
+        document.getElementById('profileInfo').innerHTML = `
+            <div style="text-align:center; padding:8px;">
+                <i class="fas fa-user-circle" style="font-size:3rem; color:#e67e22;"></i>
+                <h3>${vendor ? vendor.name : 'Customer'}</h3>
+                <p>📧 ${currentUser.email}</p>
+                <p>${vendor ? '✅ Verified Seller' : '👤 Buyer Account'}</p>
+                ${vendor ? '<p><i class="fas fa-check-circle" style="color:#10b981;"></i> You can sell products</p>' : '<p><i class="fas fa-clock"></i> Register as seller to start selling</p>'}
+            </div>
+        `;
+        updateProfileNotifications();
+        loadConversations();
+    }
+    
+    function updateProfileNotifications() {
+        let userNotifs = notifications.filter(n => n.userId === currentUser?.email && !n.read);
+        let countSpan = document.getElementById('notificationCount');
+        if (userNotifs.length > 0 && countSpan) countSpan.innerText = userNotifs.length;
+        else if (countSpan) countSpan.innerText = '0';
+        
+        let notifContainer = document.getElementById('notificationsList');
+        if (notifContainer && currentUser) {
+            let allUserNotifs = notifications.filter(n => n.userId === currentUser.email).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            notifContainer.innerHTML = allUserNotifs.map(n => `
+                <div class="order-notification" style="${n.read ? 'opacity:0.7;' : 'background:#fef3c7;'}">
+                    <strong>${n.title}</strong><br>
+                    <small>${n.message}</small><br>
+                    <span style="font-size:0.6rem;">${new Date(n.timestamp).toLocaleString()}</span>
+                    <button onclick="markNotificationRead('${n.id}')" style="background:#e67e22; padding:4px 8px; font-size:0.7rem; width:auto;">Mark read</button>
+                </div>
+            `).join('');
+            if (allUserNotifs.length === 0) notifContainer.innerHTML = "<p>No notifications</p>";
+        }
+    }
+    
+    window.markNotificationRead = (id) => {
+        let notif = notifications.find(n => n.id == id);
+        if (notif) notif.read = true;
+        saveToCloud();
+        updateProfileNotifications();
+    };
+    
+    function loadConversations() {
+        let involvedEmails = [...new Set(messages.filter(m => m.from === currentUser?.email || m.to === currentUser?.email).map(m => m.from === currentUser?.email ? m.to : m.from))];
+        let container = document.getElementById('conversationsList');
+        if (involvedEmails.length === 0) { container.innerHTML = "<p>No conversations yet.</p>"; return; }
+        container.innerHTML = involvedEmails.map(email => `
+            <div style="background:#f1f5f9; padding:10px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between;">
+                <div><i class="fas fa-user"></i> ${email}</div>
+                <button onclick="loadChat('${email}')" style="background:#e67e22; width:auto; padding:6px 12px;">Chat</button>
+            </div>
+        `).join('');
+    }
+    
+    function loadChat(withEmail) {
+        if (!currentUser) return;
+        currentChatWith = withEmail;
+        let chatMessages = messages.filter(m => (m.from === currentUser.email && m.to === withEmail) || (m.from === withEmail && m.to === currentUser.email));
+        chatMessages.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+        document.getElementById('chatMessages').innerHTML = chatMessages.map(m => `<div class="chat-message ${m.from === currentUser.email ? 'sent' : ''}"><strong>${m.from === currentUser.email ? 'Me' : m.from}:</strong> ${m.text}<br><small>${new Date(m.timestamp).toLocaleTimeString()}</small></div>`).join('');
+        document.getElementById('chatArea').style.display = 'block';
+        document.getElementById('chatWith').innerHTML = `<strong><i class="fas fa-comment"></i> Chat with ${withEmail}</strong>`;
+    }
+    
+    function sendMessage(toEmail, text) {
+        if (!text.trim() || !currentUser) return;
+        messages.push({ id: Date.now(), from: currentUser.email, to: toEmail, text: text, timestamp: new Date().toISOString(), read: false });
+        notifications.push({ id: Date.now(), userId: toEmail, type: 'message', title: 'New message', message: `${currentUser.email}: ${text.substring(0, 50)}`, timestamp: new Date().toISOString(), read: false });
+        saveToCloud();
+        showToast("Message sent");
+        loadChat(toEmail);
+        updateProfileNotifications();
     }
     
     function showToast(msg) { let t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
@@ -388,7 +576,7 @@
         images.forEach((_, idx) => { galleryHtml += `<div class="gallery-dot ${idx === 0 ? 'active' : ''}" onclick="goToSlide(${idx})"></div>`; });
         galleryHtml += `</div></div>`;
         let cleanPhone = product.vendorPhone?.replace(/\s/g, ''); if (cleanPhone?.startsWith('0')) cleanPhone = '256' + cleanPhone.substring(1);
-        let infoHtml = `<div class="detail-title">${escapeHtml(product.name)}</div><div class="detail-vendor" style="color:#e67e22; font-size:0.8rem;"><i class="fas fa-store"></i> ${escapeHtml(product.vendorName)}</div><div class="detail-price">UGX ${product.price.toLocaleString()}</div><div class="detail-description">${escapeHtml(product.description || 'No description')}</div><div class="detail-contact"><a href="tel:${cleanPhone}" class="btn-call"><i class="fas fa-phone"></i> Call</a><a href="https://wa.me/${cleanPhone}" class="btn-wa"><i class="fab fa-whatsapp"></i> WhatsApp</a><button onclick="startChatFromDetail('${product.vendorPhone}')" class="btn-message"><i class="fas fa-comment"></i> Message</button></div><button class="btn-add-cart-detail" onclick="addToCartFromDetail(${product.id})"><i class="fas fa-cart-plus"></i> Add to Cart</button>`;
+        let infoHtml = `<div class="detail-title">${escapeHtml(product.name)}</div><div class="detail-vendor" style="color:#e67e22; font-size:0.8rem;"><i class="fas fa-store"></i> ${escapeHtml(product.vendorName)}</div><div class="detail-price">UGX ${product.price.toLocaleString()}</div><div class="detail-description">${escapeHtml(product.description || 'No description')}</div><div class="detail-contact"><a href="tel:${cleanPhone}" class="btn-call"><i class="fas fa-phone"></i> Call</a><a href="https://wa.me/${cleanPhone}" class="btn-wa"><i class="fab fa-whatsapp"></i> WhatsApp</a><button onclick="startChatFromDetail('${product.vendorEmail}')" class="btn-message"><i class="fas fa-comment"></i> Message</button></div><button class="btn-add-cart-detail" onclick="addToCartFromDetail(${product.id})"><i class="fas fa-cart-plus"></i> Add to Cart</button>`;
         document.getElementById('detailGalleryContainer').innerHTML = galleryHtml;
         document.getElementById('detailInfo').innerHTML = infoHtml;
         document.getElementById('productDetailModal').style.display = 'flex';
@@ -398,26 +586,26 @@
     
     window.changeSlide = function(direction) { let newIndex = window.currentSlideIndex + direction; if (newIndex < 0) newIndex = window.totalSlides - 1; if (newIndex >= window.totalSlides) newIndex = 0; goToSlide(newIndex); };
     window.goToSlide = function(index) { let slides = document.querySelectorAll('.gallery-slide'); let dots = document.querySelectorAll('.gallery-dot'); if (!slides.length) return; slides.forEach((s, i) => s.classList.toggle('active', i === index)); dots.forEach((d, i) => d.classList.toggle('active', i === index)); window.currentSlideIndex = index; };
-    window.startChatFromDetail = (vendorPhone) => { document.getElementById('productDetailModal').style.display = 'none'; if (!currentUserId) { alert("Login to profile first"); document.getElementById('profileModal').style.display = 'flex'; return; } document.getElementById('profileModal').style.display = 'flex'; loadChat(vendorPhone); };
+    window.startChatFromDetail = (contact) => { document.getElementById('productDetailModal').style.display = 'none'; if (!currentUser) { showToast("Please login first"); showAuthModal(); return; } document.getElementById('profileModal').style.display = 'flex'; loadChat(contact); };
     window.addToCartFromDetail = (productId) => { let prod = allProducts.find(x => x.id === productId); if (prod) { let existing = shoppingCart.find(i => i.id === productId); existing ? existing.qty++ : shoppingCart.push({ id: prod.id, name: prod.name, price: prod.price, qty: 1 }); saveToCloud(); updateCartUI(); showToast(`✓ ${prod.name} added`); document.getElementById('productDetailModal').style.display = 'none'; } };
     
     function placeOrder() {
         if (shoppingCart.length === 0) { alert("Cart empty"); return; }
         let orderId = Date.now();
         let orderItems = [...shoppingCart];
-        orderItems.forEach(item => { let product = allProducts.find(p => p.id === item.id); if (product && product.vendorPhone) { notifications.push({ id: Date.now() + Math.random(), userId: product.vendorPhone, type: 'order', title: 'New Order!', message: `${currentUserId || 'Someone'} ordered ${item.name} x${item.qty}`, timestamp: new Date().toISOString(), read: false, orderId: orderId }); } });
-        orders.push({ id: orderId, items: orderItems, total: orderItems.reduce((s, i) => s + (i.price * i.qty), 0), customer: currentUserId || 'Guest', date: new Date().toISOString() });
+        orderItems.forEach(item => { let product = allProducts.find(p => p.id === item.id); if (product && product.vendorEmail) { notifications.push({ id: Date.now() + Math.random(), userId: product.vendorEmail, type: 'order', title: 'New Order!', message: `${currentUser?.email || 'Someone'} ordered ${item.name} x${item.qty}`, timestamp: new Date().toISOString(), read: false, orderId: orderId }); } });
+        orders.push({ id: orderId, items: orderItems, total: orderItems.reduce((s, i) => s + (i.price * i.qty), 0), customer: currentUser?.email || 'Guest', date: new Date().toISOString() });
         shoppingCart = []; saveToCloud(); updateCartUI(); document.getElementById('orderFeedback').innerHTML = "<div style='background:#d1fae5; padding:12px; border-radius:20px;'>✅ Order placed!</div>"; setTimeout(() => { document.getElementById('cartModal').style.display = 'none'; }, 1500); showToast("Order placed!"); updateProfileNotifications();
     }
     
-    function sendMessage(toPhone, text) { if (!text.trim() || !currentUserId) return; messages.push({ id: Date.now(), from: currentUserId, to: toPhone, text: text, timestamp: new Date().toISOString(), read: false }); notifications.push({ id: Date.now(), userId: toPhone, type: 'message', title: 'New message', message: `${currentUserId}: ${text.substring(0, 50)}`, timestamp: new Date().toISOString(), read: false }); saveToCloud(); showToast("Message sent"); loadChat(toPhone); updateProfileNotifications(); }
-    function loadChat(withPhone) { if (!currentUserId) return; currentChatWith = withPhone; let chatMessages = messages.filter(m => (m.from === currentUserId && m.to === withPhone) || (m.from === withPhone && m.to === currentUserId)); chatMessages.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)); document.getElementById('chatMessages').innerHTML = chatMessages.map(m => `<div class="chat-message ${m.from === currentUserId ? 'sent' : ''}"><strong>${m.from === currentUserId ? 'Me' : m.from}:</strong> ${m.text}<br><small>${new Date(m.timestamp).toLocaleTimeString()}</small></div>`).join(''); document.getElementById('chatArea').style.display = 'block'; document.getElementById('chatWith').innerHTML = `<strong><i class="fas fa-comment"></i> Chat with ${withPhone}</strong>`; }
-    function loadProfile() { if (!currentUserId) return; let vendor = approvedVendors.find(v => v.phone === currentUserId); document.getElementById('profileInfo').innerHTML = `<div style="text-align:center;"><i class="fas fa-user-circle" style="font-size:3rem; color:#e67e22;"></i><h3>${vendor ? vendor.name : 'Customer'}</h3><p>📞 ${currentUserId}</p><p>${vendor ? '✅ Verified Seller' : '👤 Buyer Account'}</p></div>`; updateProfileNotifications(); loadConversations(); }
-    function updateProfileNotifications() { let userNotifs = notifications.filter(n => n.userId === currentUserId && !n.read); let badge = document.getElementById('profileNotificationBadge'); let countSpan = document.getElementById('notificationCount'); if (userNotifs.length > 0) { badge.style.display = 'flex'; badge.innerText = userNotifs.length; if(countSpan) countSpan.innerText = userNotifs.length; } else { badge.style.display = 'none'; if(countSpan) countSpan.innerText = '0'; } let notifContainer = document.getElementById('notificationsList'); if (notifContainer && currentUserId) { let allUserNotifs = notifications.filter(n => n.userId === currentUserId).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); notifContainer.innerHTML = allUserNotifs.map(n => `<div class="order-notification" style="${n.read ? 'opacity:0.7;' : 'background:#fef3c7;'}"><strong>${n.title}</strong><br><small>${n.message}</small><br><span style="font-size:0.6rem;">${new Date(n.timestamp).toLocaleString()}</span><button onclick="markNotificationRead('${n.id}')" style="background:#e67e22; padding:4px 8px; font-size:0.7rem; width:auto; margin-top:5px;">Mark read</button></div>`).join(''); if (allUserNotifs.length === 0) notifContainer.innerHTML = "<p>No notifications</p>"; } }
-    window.markNotificationRead = (id) => { let notif = notifications.find(n => n.id == id); if(notif) notif.read = true; saveToCloud(); updateProfileNotifications(); };
-    function loadConversations() { let involvedPhones = [...new Set(messages.filter(m => m.from === currentUserId || m.to === currentUserId).map(m => m.from === currentUserId ? m.to : m.from))]; let container = document.getElementById('conversationsList'); if (involvedPhones.length === 0) { container.innerHTML = "<p>No conversations yet.</p>"; return; } container.innerHTML = involvedPhones.map(phone => `<div style="background:#f1f5f9; padding:10px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between;"><div><i class="fas fa-user"></i> ${phone}</div><button onclick="loadChat('${phone}')" style="background:#e67e22; width:auto; padding:6px 12px;">Chat</button></div>`).join(''); }
-    function getContactHtml(phone) { let p = phone.replace(/\s/g, ''); if(p.startsWith('0')) p = '256' + p.substring(1); return `<div style="display:flex; gap:6px; margin-top:6px;"><a href="tel:${p}" style="background:#f1f5f9; padding:4px 10px; border-radius:30px; font-size:0.7rem; text-decoration:none; color:#2c5f4e;"><i class="fas fa-phone"></i> Call</a><a href="https://wa.me/${p}" style="background:#25D366; padding:4px 10px; border-radius:30px; font-size:0.7rem; text-decoration:none; color:white;"><i class="fab fa-whatsapp"></i> WhatsApp</a>${currentUserId ? `<button onclick="startChat('${phone}')" style="background:#e67e22; padding:4px 10px; border-radius:30px; font-size:0.7rem; width:auto;">Message</button>` : ''}</div>`; }
-    window.startChat = (vendorPhone) => { if (!currentUserId) { alert("Login to profile first"); document.getElementById('profileModal').style.display = 'flex'; return; } document.getElementById('profileModal').style.display = 'flex'; loadChat(vendorPhone); };
+    function getContactHtml(vendorEmail, vendorPhone) {
+        let p = vendorPhone?.replace(/\s/g, ''); if(p?.startsWith('0')) p = '256' + p.substring(1);
+        return `<div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+            <a href="tel:${p}" style="background:#f1f5f9; padding:4px 10px; border-radius:30px; font-size:0.7rem; text-decoration:none; color:#2c5f4e;"><i class="fas fa-phone"></i> Call</a>
+            <a href="https://wa.me/${p}" style="background:#25D366; padding:4px 10px; border-radius:30px; font-size:0.7rem; text-decoration:none; color:white;"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+            ${currentUser ? `<button onclick="startChatFromDetail('${vendorEmail}')" style="background:#e67e22; padding:4px 10px; border-radius:30px; font-size:0.7rem; width:auto;">Message</button>` : ''}
+        </div>`;
+    }
     
     function renderMarketplace() {
         let searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || "";
@@ -433,7 +621,7 @@
                     <div class="product-title">${escapeHtml(p.name)}</div>
                     <div class="vendor-badge"><i class="fas fa-store"></i> ${escapeHtml(p.vendorName)}</div>
                     <div class="price">UGX ${p.price.toLocaleString()}</div>
-                    ${getContactHtml(p.vendorPhone)}
+                    ${getContactHtml(p.vendorEmail, p.vendorPhone)}
                     <button class="btn-cart" data-id="${p.id}" onclick="event.stopPropagation(); addToCartFromDetail(${p.id})"><i class="fas fa-cart-plus"></i> Add to Cart</button>
                 </div>
             </div>`;
@@ -451,49 +639,109 @@
     document.getElementById('closeCart').onclick = () => cartModal.style.display = 'none';
     document.getElementById('checkoutOrderBtn').onclick = placeOrder;
     
+    // Auth Modal
+    const authModal = document.getElementById('authModal');
+    document.getElementById('profileNavBtn').onclick = () => {
+        if (currentUser) {
+            document.getElementById('profileModal').style.display = 'flex';
+            loadProfile();
+        } else {
+            showAuthModal();
+        }
+    };
+    document.getElementById('closeAuth').onclick = () => authModal.style.display = 'none';
+    document.getElementById('authSubmitBtn').onclick = handleAuth;
+    document.getElementById('switchAuthBtn').onclick = () => { isLoginMode = !isLoginMode; showAuthModal(); };
+    document.getElementById('closeProfile').onclick = () => document.getElementById('profileModal').style.display = 'none';
+    document.getElementById('logoutBtn').onclick = logout;
+    document.getElementById('sendMessageBtn').onclick = () => { let msg = document.getElementById('chatMessageInput').value; if (currentChatWith && msg) { sendMessage(currentChatWith, msg); document.getElementById('chatMessageInput').value = ''; } };
+    
+    // Vendor Registration
     const regModal = document.getElementById('registerModal');
-    document.getElementById('sellNavBtn').onclick = () => regModal.style.display = 'flex';
+    document.getElementById('sellNavBtn').onclick = () => {
+        if (!currentUser) { showToast("Please login first"); showAuthModal(); return; }
+        regModal.style.display = 'flex';
+    };
     document.getElementById('closeReg').onclick = () => regModal.style.display = 'none';
     document.getElementById('payAirtelBtn').onclick = () => openAirtelPayment();
     document.getElementById('submitRegReq').onclick = async () => {
         let name = document.getElementById('regBusiness').value.trim();
+        let email = document.getElementById('regEmail').value.trim();
         let phone = document.getElementById('regPhoneNum').value.trim();
         let txn = document.getElementById('regTxnRef').value.trim();
         
-        if (!name || !phone || !txn) { alert("Fill all fields"); return; }
-        if (approvedVendors.find(v => v.phone === phone)) { alert("Already approved"); return; }
-        if (pendingVendors.find(v => v.phone === phone)) { alert("Pending already"); return; }
+        if (!name || !email || !phone || !txn) { alert("Fill all fields"); return; }
+        if (approvedVendors.find(v => v.email === email)) { alert("Already approved"); return; }
+        if (pendingVendors.find(v => v.email === email)) { alert("Pending already"); return; }
         
-        pendingVendors.push({ name, phone, transactionId: txn, requestedAt: new Date().toISOString() });
+        pendingVendors.push({ name, email, phone, transactionId: txn, requestedAt: new Date().toISOString() });
         saveToCloud();
         
-        // Send email notification to admin
-        await sendEmailNotification(name, phone, txn);
+        await sendEmailNotification(name, email, phone, txn);
         
-        document.getElementById('regMsg').innerHTML = "<span style='color:green;'>✓ Request sent! Admin will review your request via email.</span>";
+        document.getElementById('regMsg').innerHTML = "<span style='color:green;'>✓ Request sent! Admin will review via email.</span>";
         showToast("Registration request sent! Admin will be notified.");
         setTimeout(() => regModal.style.display = 'none', 2000);
     };
     
+    // Vendor Dashboard
     const vendorModal = document.getElementById('vendorModal');
     document.getElementById('vendorNavBtn').onclick = () => vendorModal.style.display = 'flex';
     document.getElementById('closeVendor').onclick = () => vendorModal.style.display = 'none';
     let currentVendor = null;
-    document.getElementById('doVendorLogin').onclick = () => { let phone = document.getElementById('vendorLoginPhone').value.trim(); let vendor = approvedVendors.find(v => v.phone === phone); if (vendor) { currentVendor = phone; document.getElementById('vendorLoginDiv').style.display = 'none'; document.getElementById('vendorDashboardPanel').style.display = 'block'; loadVendorProducts(); } else { let pending = pendingVendors.find(v => v.phone === phone); if(pending) alert("Pending approval. Check your email for admin response."); else alert("Not approved yet. Register first."); } };
-    function loadVendorProducts() { let myProducts = allProducts.filter(p => p.vendorPhone === currentVendor); let container = document.getElementById('vendorProductsList'); container.innerHTML = myProducts.map(p => `<div style="background:#f8fafc; padding:8px; border-radius:16px; margin-bottom:6px;"><strong>${p.name}</strong> - UGX ${p.price}<br><button onclick="deleteProduct(${p.id})" style="background:#e76f51;">Delete</button></div>`).join(''); if (myProducts.length === 0) container.innerHTML = "<p>No products yet.</p>"; }
+    document.getElementById('doVendorLogin').onclick = () => { 
+        let email = document.getElementById('vendorEmailLogin').value.trim(); 
+        let vendor = approvedVendors.find(v => v.email === email); 
+        if (vendor) { 
+            currentVendor = email; 
+            document.getElementById('vendorLoginDiv').style.display = 'none'; 
+            document.getElementById('vendorDashboardPanel').style.display = 'block'; 
+            loadVendorProducts(); 
+        } else { 
+            let pending = pendingVendors.find(v => v.email === email); 
+            if(pending) alert("Pending approval. Check your email for admin response."); 
+            else alert("Not approved yet. Register first."); 
+        } 
+    };
+    function loadVendorProducts() { 
+        let myProducts = allProducts.filter(p => p.vendorEmail === currentVendor); 
+        let container = document.getElementById('vendorProductsList'); 
+        container.innerHTML = myProducts.map(p => `<div style="background:#f8fafc; padding:8px; border-radius:16px; margin-bottom:6px;"><strong>${p.name}</strong> - UGX ${p.price}<br><button onclick="deleteProduct(${p.id})" style="background:#e76f51;">Delete</button></div>`).join(''); 
+        if (myProducts.length === 0) container.innerHTML = "<p>No products yet.</p>"; 
+    }
     window.deleteProduct = (id) => { allProducts = allProducts.filter(p => p.id !== id); saveToCloud(); loadVendorProducts(); renderMarketplace(); showToast("Deleted"); };
-    document.getElementById('publishProductBtn').onclick = async () => { if (!currentVendor) { alert("Login first"); return; } let name = document.getElementById('prodName').value.trim(); let price = parseInt(document.getElementById('prodPrice').value); let category = document.getElementById('prodCategory').value; let desc = document.getElementById('prodDesc').value.trim(); if (!name || isNaN(price)) { alert("Valid name & price"); return; } let btn = document.getElementById('publishProductBtn'); let originalText = btn.innerHTML; btn.innerHTML = '<span class="loading-spinner"></span> Publishing...'; btn.disabled = true; setTimeout(() => { let vendorInfo = approvedVendors.find(v => v.phone === currentVendor); allProducts.push({ id: Date.now(), name, price, category, description: desc, images: [...currentImagesArray], vendorPhone: currentVendor, vendorName: vendorInfo.name }); saveToCloud(); renderMarketplace(); loadVendorProducts(); document.getElementById('prodName').value = ''; document.getElementById('prodPrice').value = ''; document.getElementById('prodDesc').value = ''; currentImagesArray = []; if(imagePreviewContainer) imagePreviewContainer.innerHTML = ''; if(imagesInput) imagesInput.value = ''; btn.innerHTML = originalText; btn.disabled = false; showToast(`✅ Product published!`); }, 100); };
-    
-    const profileModal = document.getElementById('profileModal');
-    document.getElementById('profileNavBtn').onclick = () => profileModal.style.display = 'flex';
-    document.getElementById('closeProfile').onclick = () => profileModal.style.display = 'none';
-    document.getElementById('profileLoginBtn').onclick = () => { let phone = document.getElementById('profilePhoneInput').value.trim(); if (!phone) { alert("Enter phone number"); return; } currentUserId = phone; document.getElementById('profileLoginArea').style.display = 'none'; document.getElementById('profileContent').style.display = 'block'; loadProfile(); };
-    document.getElementById('sendMessageBtn').onclick = () => { let msg = document.getElementById('chatMessageInput').value; if (currentChatWith && msg) { sendMessage(currentChatWith, msg); document.getElementById('chatMessageInput').value = ''; } };
+    document.getElementById('publishProductBtn').onclick = async () => { 
+        if (!currentVendor) { alert("Login first"); return; } 
+        let name = document.getElementById('prodName').value.trim(); 
+        let price = parseInt(document.getElementById('prodPrice').value); 
+        let category = document.getElementById('prodCategory').value; 
+        let desc = document.getElementById('prodDesc').value.trim(); 
+        if (!name || isNaN(price)) { alert("Valid name & price"); return; } 
+        let btn = document.getElementById('publishProductBtn'); 
+        let originalText = btn.innerHTML; 
+        btn.innerHTML = '<span class="loading-spinner"></span> Publishing...'; 
+        btn.disabled = true; 
+        setTimeout(() => { 
+            let vendorInfo = approvedVendors.find(v => v.email === currentVendor); 
+            allProducts.push({ id: Date.now(), name, price, category, description: desc, images: [...currentImagesArray], vendorEmail: currentVendor, vendorName: vendorInfo.name, vendorPhone: vendorInfo.phone }); 
+            saveToCloud(); 
+            renderMarketplace(); 
+            loadVendorProducts(); 
+            document.getElementById('prodName').value = ''; 
+            document.getElementById('prodPrice').value = ''; 
+            document.getElementById('prodDesc').value = ''; 
+            currentImagesArray = []; 
+            if(imagePreviewContainer) imagePreviewContainer.innerHTML = ''; 
+            if(imagesInput) imagesInput.value = ''; 
+            btn.innerHTML = originalText; 
+            btn.disabled = false; 
+            showToast(`✅ Product published! Everyone can see it now!`); 
+        }, 100); 
+    };
     
     document.getElementById('closeDetailModal').onclick = () => document.getElementById('productDetailModal').style.display = 'none';
     window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
     
-    // Navigation active state
     document.querySelectorAll('.nav-item').forEach(nav => {
         nav.addEventListener('click', function() {
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -501,8 +749,14 @@
         });
     });
     
+    // Check for saved user session
+    const savedUser = localStorage.getItem('CM_currentUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+    }
+    
     loadFromCloud();
     updateCartUI();
 </script>
 </body>
- </html>
+    </html> 
