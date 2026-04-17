@@ -128,7 +128,6 @@
         footer { text-align: center; font-size: 0.7rem; color: #94a3b8; padding: 1rem; }
         .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1a3a32; color: white; padding: 8px 20px; border-radius: 40px; z-index: 1100; font-size: 0.8rem; }
         .airtel-highlight { background: #E60000; color: white; padding: 12px; border-radius: 60px; text-align: center; font-weight: bold; margin: 10px 0; }
-        .sync-status { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 20px; font-size: 0.6rem; z-index: 101; }
         .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -136,8 +135,6 @@
     </style>
 </head>
 <body>
-
-<div class="sync-status" id="syncStatus">🔄 Connecting to cloud...</div>
 
 <div class="header">
     <div class="brand-flex">
@@ -249,8 +246,7 @@
 
 <script>
     // ========== GOOGLE SHEETS CLOUD DATABASE ==========
-    // YOUR NEW GOOGLE SCRIPT URL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby771nk5hzZMYaS4v5hrBhYdjXOWjrUTYtp6Xvhiae2ytPfCWOSJ8xyiN9_rRVIUuXuoA/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmfcDz0dquqzbbbqj8Lz-Fabpq1sw54hNgBcpYrFLEb4-xxZ6AGuLw0SPwKumo0sUhYA/exec";
     const EMAIL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8u256oCiv2Cw0ureDiU3YxU6lw7d1OHlDpF7qLCUIMzp1GMBmIuLd-vMi1QKD0tDi/exec";
     
     let approvedVendors = JSON.parse(localStorage.getItem('CM_approved')) || [];
@@ -268,13 +264,15 @@
     let currentImagesArray = [];
     let isSyncing = false;
     let isLoginMode = true;
+    let lastSyncedData = null;
+    let autoSyncInterval = null;
     
-    function updateSyncStatus(text, isError = false) {
-        const el = document.getElementById('syncStatus');
-        if (el) {
-            el.innerHTML = text;
-            el.style.background = isError ? 'rgba(231,76,60,0.8)' : 'rgba(0,0,0,0.6)';
-        }
+    function showToast(msg) { 
+        let t = document.createElement('div'); 
+        t.className = 'toast'; 
+        t.innerText = msg; 
+        document.body.appendChild(t); 
+        setTimeout(() => t.remove(), 3000); 
     }
     
     // Send email notification
@@ -286,23 +284,32 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: name, email: email, phone: phone, transaction: transaction })
             });
-            console.log("Email sent to admin");
         } catch(e) { console.log("Email error", e); }
+    }
+    
+    // Check if data changed (for performance)
+    function hasDataChanged() {
+        const currentData = {
+            products: allProducts.length,
+            users: users.length,
+            pending: pendingVendors.length,
+            approved: approvedVendors.length
+        };
+        if (!lastSyncedData) return true;
+        return JSON.stringify(currentData) !== JSON.stringify(lastSyncedData);
     }
     
     // Save to Google Sheets Cloud
     async function saveToCloud() {
         if (isSyncing) return;
+        if (!hasDataChanged()) return;
+        
         try {
-            updateSyncStatus('📤 Saving...');
-            const cloudData = {
-                approved: approvedVendors,
-                pending: pendingVendors,
+            const minimalData = {
                 products: allProducts,
-                orders: orders,
-                messages: messages,
-                notifications: notifications,
                 users: users,
+                pending: pendingVendors,
+                approved: approvedVendors,
                 lastUpdated: new Date().toISOString()
             };
             
@@ -319,11 +326,16 @@
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify([JSON.stringify(cloudData)])
+                body: JSON.stringify(minimalData)
             });
-            updateSyncStatus('✅ Saved to cloud');
+            
+            lastSyncedData = {
+                products: allProducts.length,
+                users: users.length,
+                pending: pendingVendors.length,
+                approved: approvedVendors.length
+            };
         } catch(e) {
-            updateSyncStatus('⚠️ Offline mode', true);
             console.log("Cloud save failed", e);
         }
     }
@@ -331,7 +343,6 @@
     // Load from Google Sheets Cloud
     async function loadFromCloud() {
         isSyncing = true;
-        updateSyncStatus('🔄 Loading from cloud...');
         try {
             // First load from localStorage as backup
             approvedVendors = JSON.parse(localStorage.getItem('CM_approved')) || [];
@@ -348,24 +359,16 @@
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
                 if (data && data.length > 0) {
-                    const cloudData = JSON.parse(data[0]);
-                    if (cloudData.products) {
+                    const cloudData = data[0];
+                    if (cloudData && cloudData.products) {
                         allProducts = cloudData.products;
                         approvedVendors = cloudData.approved || [];
                         pendingVendors = cloudData.pending || [];
                         users = cloudData.users || [];
-                        updateSyncStatus(`✅ ${allProducts.length} products from cloud`);
-                        if (allProducts.length > 0) {
-                            showToast(`Loaded ${allProducts.length} products from cloud`);
-                        }
-                    } else {
-                        updateSyncStatus('✅ Connected - No products yet');
+                        saveAllLocal();
                     }
-                } else {
-                    updateSyncStatus('✅ Ready - Add products');
                 }
             } catch(e) {
-                updateSyncStatus('📱 Offline mode - Using local data', true);
                 console.log("Cloud load failed, using local data", e);
             }
         } catch(e) { console.log("Load error", e); }
@@ -373,6 +376,17 @@
         isSyncing = false;
         renderMarketplace();
         updateCartUI();
+    }
+    
+    function saveAllLocal() {
+        localStorage.setItem('CM_approved', JSON.stringify(approvedVendors));
+        localStorage.setItem('CM_pending', JSON.stringify(pendingVendors));
+        localStorage.setItem('CM_products', JSON.stringify(allProducts));
+        localStorage.setItem('CM_orders', JSON.stringify(orders));
+        localStorage.setItem('CM_messages', JSON.stringify(messages));
+        localStorage.setItem('CM_notifications', JSON.stringify(notifications));
+        localStorage.setItem('CM_users', JSON.stringify(users));
+        localStorage.setItem('CM_cart', JSON.stringify(shoppingCart));
     }
     
     // Auth Functions
@@ -396,7 +410,7 @@
         if (isLoginMode) {
             const user = users.find(u => u.email === email && u.password === password);
             if (user) {
-                currentUser = user;
+                currentUser = { email: user.email, name: user.name };
                 localStorage.setItem('CM_currentUser', JSON.stringify(currentUser));
                 document.getElementById('authModal').style.display = 'none';
                 showToast(`Welcome back, ${user.email}!`);
@@ -411,7 +425,7 @@
             }
             const newUser = { email: email, password: password, joined: new Date().toISOString() };
             users.push(newUser);
-            currentUser = newUser;
+            currentUser = { email: email };
             localStorage.setItem('CM_users', JSON.stringify(users));
             localStorage.setItem('CM_currentUser', JSON.stringify(currentUser));
             saveToCloud();
@@ -505,7 +519,6 @@
         updateProfileNotifications();
     }
     
-    function showToast(msg) { let t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
     function updateCartUI() { let total = shoppingCart.reduce((s, i) => s + i.qty, 0); document.getElementById('cartCount').innerText = total; }
     function openAirtelPayment() { window.location.href = `tel:*185*${AIRTEL_NUMBER}*5000#`; showToast("Opening Airtel Money USSD"); }
     
@@ -680,6 +693,7 @@
         let txn = document.getElementById('regTxnRef').value.trim();
         
         if (!name || !email || !phone || !txn) { alert("Fill all fields"); return; }
+        
         if (approvedVendors.find(v => v.email === email)) { alert("Already approved"); return; }
         if (pendingVendors.find(v => v.email === email)) { alert("Pending already"); return; }
         
@@ -758,6 +772,23 @@
         });
     });
     
+    // Auto-sync every 30 seconds
+    if (autoSyncInterval) clearInterval(autoSyncInterval);
+    autoSyncInterval = setInterval(() => {
+        if (currentUser || allProducts.length > 0) {
+            saveToCloud();
+        }
+    }, 30000);
+    
+    // Online/Offline detection
+    window.addEventListener('offline', () => {
+        showToast("You are offline. Changes will sync when back online.");
+    });
+    
+    window.addEventListener('online', () => {
+        loadFromCloud();
+    });
+    
     // Check for saved user session
     const savedUser = localStorage.getItem('CM_currentUser');
     if (savedUser) {
@@ -768,4 +799,4 @@
     updateCartUI();
 </script>
 </body>
-                                                                                                                                                               </html>                                           
+</html>
