@@ -85,7 +85,6 @@
         button { background: #1a3a32; color: white; border: none; padding: 12px; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; }
         .btn-airtel { background: #E60000; color: white; font-size: 1rem; padding: 12px; }
         .btn-login { background: #e67e22; }
-        .btn-register { background: #27ae60; }
         
         .product-detail-modal .modal-card { max-width: 550px; padding: 0; overflow: hidden; }
         .gallery-container { position: relative; background: #000; }
@@ -138,7 +137,7 @@
 </head>
 <body>
 
-<div class="sync-status" id="syncStatus">🔄 Connecting...</div>
+<div class="sync-status" id="syncStatus">🔄 Connecting to cloud...</div>
 
 <div class="header">
     <div class="brand-flex">
@@ -250,8 +249,8 @@
 
 <script>
     // ========== GOOGLE SHEETS CLOUD DATABASE ==========
-    // YOUR GOOGLE SCRIPT URL - REPLACE THIS WITH YOUR ACTUAL URL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRAH56zUSxEJG0IeWZoH9evLv2OquQyiinRtykbuEBV12rJTD_1y472fB7R-l0S27V/exec";
+    // YOUR NEW GOOGLE SCRIPT URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby771nk5hzZMYaS4v5hrBhYdjXOWjrUTYtp6Xvhiae2ytPfCWOSJ8xyiN9_rRVIUuXuoA/exec";
     const EMAIL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8u256oCiv2Cw0ureDiU3YxU6lw7d1OHlDpF7qLCUIMzp1GMBmIuLd-vMi1QKD0tDi/exec";
     
     let approvedVendors = JSON.parse(localStorage.getItem('CM_approved')) || [];
@@ -324,15 +323,17 @@
             });
             updateSyncStatus('✅ Saved to cloud');
         } catch(e) {
-            updateSyncStatus('⚠️ Offline', true);
+            updateSyncStatus('⚠️ Offline mode', true);
+            console.log("Cloud save failed", e);
         }
     }
     
     // Load from Google Sheets Cloud
     async function loadFromCloud() {
         isSyncing = true;
-        updateSyncStatus('🔄 Loading...');
+        updateSyncStatus('🔄 Loading from cloud...');
         try {
+            // First load from localStorage as backup
             approvedVendors = JSON.parse(localStorage.getItem('CM_approved')) || [];
             pendingVendors = JSON.parse(localStorage.getItem('CM_pending')) || [];
             allProducts = JSON.parse(localStorage.getItem('CM_products')) || [];
@@ -342,6 +343,7 @@
             users = JSON.parse(localStorage.getItem('CM_users')) || [];
             shoppingCart = JSON.parse(localStorage.getItem('CM_cart')) || [];
             
+            // Try to load from cloud
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
@@ -356,9 +358,16 @@
                         if (allProducts.length > 0) {
                             showToast(`Loaded ${allProducts.length} products from cloud`);
                         }
+                    } else {
+                        updateSyncStatus('✅ Connected - No products yet');
                     }
+                } else {
+                    updateSyncStatus('✅ Ready - Add products');
                 }
-            } catch(e) { console.log("Cloud load fallback to local"); }
+            } catch(e) {
+                updateSyncStatus('📱 Offline mode - Using local data', true);
+                console.log("Cloud load failed, using local data", e);
+            }
         } catch(e) { console.log("Load error", e); }
         
         isSyncing = false;
@@ -759,4 +768,4 @@
     updateCartUI();
 </script>
 </body>
-    </html> 
+                                                                                                                                                               </html>                                           
